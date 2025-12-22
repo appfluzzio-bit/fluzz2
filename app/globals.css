@@ -1,0 +1,91 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 98%;
+    --foreground: 0 0% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 10%;
+    --primary: 142 76% 36%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 10%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 45%;
+    --accent: 0 0% 96%;
+    --accent-foreground: 0 0% 10%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
+    --ring: 142 76% 36%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 0 0% 8%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 12%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 12%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 142 76% 36%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 16%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 20%;
+    --muted-foreground: 0 0% 60%;
+    --accent: 0 0% 16%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 142 76% 36%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  
+  /* Transição suave ao trocar de tema */
+  *,
+  *::before,
+  *::after {
+    transition: 
+      background-color 0.4s ease-in-out,
+      border-color 0.4s ease-in-out,
+      color 0.4s ease-in-out,
+      fill 0.4s ease-in-out,
+      stroke 0.4s ease-in-out,
+      opacity 0.4s ease-in-out,
+      box-shadow 0.4s ease-in-out;
+  }
+  
+  /* Exceção para elementos que precisam de transições específicas */
+  button,
+  a,
+  input,
+  textarea,
+  select {
+    transition: 
+      background-color 0.4s ease-in-out,
+      border-color 0.4s ease-in-out,
+      color 0.4s ease-in-out,
+      fill 0.4s ease-in-out,
+      stroke 0.4s ease-in-out,
+      opacity 0.4s ease-in-out,
+      box-shadow 0.4s ease-in-out,
+      transform 0.2s ease-in-out;
+  }
+}
+
