@@ -1,4 +1,9 @@
+import { Metadata } from "next";
 import { Card, CardContent } from "@/components/ui/card";
+
+export const metadata: Metadata = {
+  title: "Contatos - Fluzz",
+};
 import { Users } from "lucide-react";
 
 // TODO: Implement contacts functionality

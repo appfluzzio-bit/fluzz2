@@ -1,9 +1,11 @@
+import { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
-import { signup } from "../actions";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { SignupForm } from "./signup-form";
+
+export const metadata: Metadata = {
+  title: "Cadastro - Fluzz",
+};
 
 export default function SignupPage() {
   return (
@@ -90,56 +92,19 @@ export default function SignupPage() {
             Preencha os dados abaixo para começar
           </p>
 
-          <form action={signup} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Nome Completo</Label>
-              <Input
-                id="name"
-                name="name"
-                type="text"
-                placeholder="Seu nome completo"
-                required
-              />
-            </div>
+          <SignupForm />
 
-            <div className="space-y-2">
-              <Label htmlFor="email">E-mail</Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                placeholder="seu@email.com"
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="password">Senha</Label>
-              <Input
-                id="password"
-                name="password"
-                type="password"
-                placeholder="••••••"
-                required
-              />
-            </div>
-
-            <Button type="submit" className="w-full" size="lg">
-              Criar Conta
-            </Button>
-
-            <p className="text-center text-xs text-muted-foreground">
-              Ao criar uma conta, você concorda com nossos{" "}
-              <Link href="/terms" className="text-primary hover:underline">
-                Termos de Serviço
-              </Link>{" "}
-              e{" "}
-              <Link href="/privacy" className="text-primary hover:underline">
-                Política de Privacidade
-              </Link>
-              .
-            </p>
-          </form>
+          <p className="mt-4 text-center text-xs text-muted-foreground">
+            Ao criar uma conta, você concorda com nossos{" "}
+            <Link href="/terms" className="text-primary hover:underline">
+              Termos de Serviço
+            </Link>{" "}
+            e{" "}
+            <Link href="/privacy" className="text-primary hover:underline">
+              Política de Privacidade
+            </Link>
+            .
+          </p>
 
           <p className="mt-6 text-center text-sm text-muted-foreground">
             Já tem uma conta?{" "}

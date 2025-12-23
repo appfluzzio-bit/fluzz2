@@ -1,8 +1,8 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { createOrganization } from "./actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,26 +11,50 @@ import { useToast } from "@/components/ui/use-toast";
 import { Loader2 } from "lucide-react";
 
 export default function OnboardingPage() {
-  const [isPending, startTransition] = useTransition();
+  const [isLoading, setIsLoading] = useState(false);
+  const [organizationName, setOrganizationName] = useState("");
   const { toast } = useToast();
+  const router = useRouter();
+
+  useEffect(() => {
+    document.title = "Criar Organização - Fluzz";
+  }, []);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
-    const formData = new FormData(e.currentTarget);
+    if (!organizationName.trim()) {
+      toast({
+        title: "Erro",
+        description: "Nome da organização é obrigatório",
+        variant: "destructive",
+      });
+      return;
+    }
 
-    startTransition(async () => {
-      const result = await createOrganization(formData);
+    setIsLoading(true);
 
-      if (result?.error) {
-        toast({
-          title: "Erro",
-          description: result.error,
-          variant: "destructive",
-        });
-      }
-      // Se não houver erro, o redirect será feito automaticamente
-    });
+    // Simula delay de criação
+    setTimeout(() => {
+      // Salva dados mockados no localStorage
+      const mockOrganization = {
+        id: crypto.randomUUID(),
+        name: organizationName,
+        createdAt: new Date().toISOString(),
+      };
+
+      localStorage.setItem("fluzz_organization", JSON.stringify(mockOrganization));
+      localStorage.setItem("fluzz_onboarding_completed", "true");
+
+      toast({
+        title: "Sucesso!",
+        description: "Organização criada com sucesso",
+      });
+
+      // Redireciona para o dashboard
+      router.push("/dashboard");
+      setIsLoading(false);
+    }, 1000);
   }
 
   return (
@@ -62,20 +86,22 @@ export default function OnboardingPage() {
                 type="text"
                 placeholder="Minha Empresa"
                 required
-                disabled={isPending}
+                disabled={isLoading}
+                value={organizationName}
+                onChange={(e) => setOrganizationName(e.target.value)}
               />
             </div>
 
-            <Button type="submit" className="w-full" size="lg" disabled={isPending}>
-              {isPending ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Criando...
-                </>
-              ) : (
-                "Criar Organização"
-              )}
-            </Button>
+                <Button type="submit" className="w-full" size="lg" disabled={isLoading}>
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Criando...
+                    </>
+                  ) : (
+                    "Criar Organização"
+                  )}
+                </Button>
           </form>
         </CardContent>
       </Card>

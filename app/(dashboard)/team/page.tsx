@@ -58,6 +58,10 @@ export default function TeamPage() {
   const [orgMembers, setOrgMembers] = useState<any[]>([]);
   const [workspaceMembers, setWorkspaceMembers] = useState<any[]>([]);
   const [invites, setInvites] = useState<any[]>([]);
+
+  useEffect(() => {
+    document.title = "Usuários - Fluzz";
+  }, []);
   const [loading, setLoading] = useState(true);
   const [isInviteOrgOpen, setIsInviteOrgOpen] = useState(false);
   const [isInviteWorkspaceOpen, setIsInviteWorkspaceOpen] = useState(false);

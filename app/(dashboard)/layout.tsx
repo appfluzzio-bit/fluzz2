@@ -1,11 +1,9 @@
 import { redirect } from "next/navigation";
 import { getUser } from "@/lib/auth";
-import { getUserWorkspaces } from "@/lib/permissions";
 import { Sidebar } from "@/components/sidebar";
 import { Header } from "@/components/header";
 import { WorkspaceProvider } from "@/lib/workspace-context";
 import { SidebarProvider } from "@/lib/sidebar-context";
-import { createClient } from "@/lib/supabase/server";
 
 export default async function DashboardLayout({
   children,
@@ -18,21 +16,18 @@ export default async function DashboardLayout({
     redirect("/auth/login");
   }
 
-  // Get user's organizations
-  const supabase = await createClient();
-  const { data: orgMembers } = await supabase
-    .from("organization_members")
-    .select("organization_id, organizations(*)")
-    .eq("user_id", user.id);
+  // Mock workspaces data - será substituído por dados reais depois
+  const mockWorkspaces = [
+    {
+      id: "1",
+      name: "Workspace Principal",
+      slug: "principal",
+      organization_id: "mock-org-1",
+      created_at: new Date().toISOString(),
+    },
+  ];
 
-  if (!orgMembers || orgMembers.length === 0) {
-    redirect("/onboarding");
-  }
-
-  const organizationId = (orgMembers[0].organizations as any).id;
-
-  // Get user's workspaces
-  const workspaces = await getUserWorkspaces(user.id, organizationId);
+  const workspaces = mockWorkspaces;
 
   return (
     <WorkspaceProvider

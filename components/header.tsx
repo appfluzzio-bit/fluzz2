@@ -72,7 +72,7 @@ export function Header({ user }: HeaderProps) {
     router.refresh();
   };
 
-  const getInitials = (name: string | null) => {
+  const getInitials = (name: string) => {
     if (!name) return "U";
     return name
       .split(" ")
@@ -120,11 +120,11 @@ export function Header({ user }: HeaderProps) {
               <Avatar className="h-9 w-9 border-2 border-primary">
                 <AvatarImage src={undefined} />
                 <AvatarFallback className="bg-primary text-primary-foreground">
-                  {getInitials(user.name)}
+                  {getInitials(user.nome)}
                 </AvatarFallback>
               </Avatar>
               <span className="text-sm font-medium hidden sm:block">
-                {user.name?.split(" ")[0] || user.email.split("@")[0]}
+                {user.nome?.split(" ")[0] || user.email.split("@")[0]}
               </span>
             </button>
           </DropdownMenuTrigger>

@@ -45,6 +45,10 @@ export default function DepartmentsPage() {
   const { currentWorkspace } = useWorkspace();
   const [departments, setDepartments] = useState<Department[]>([]);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    document.title = "Departamentos - Fluzz";
+  }, []);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingDepartment, setEditingDepartment] = useState<Department | null>(
     null

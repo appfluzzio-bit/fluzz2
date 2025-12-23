@@ -33,14 +33,16 @@ export async function login(formData: FormData) {
   }
 
   revalidatePath("/", "layout");
-  redirect("/dashboard");
+  redirect("/onboarding");
 }
 
 export async function signup(formData: FormData) {
   const rawData = {
+    nome: formData.get("nome") as string,
     email: formData.get("email") as string,
+    telefone: formData.get("telefone") as string,
+    segmento: formData.get("segmento") as string,
     password: formData.get("password") as string,
-    name: formData.get("name") as string,
   };
 
   const validated = signupSchema.safeParse(rawData);
@@ -53,9 +55,17 @@ export async function signup(formData: FormData) {
 
   const supabase = await createClient();
 
+  // Cria usuário no Supabase Auth com metadata
   const { data: authData, error: authError } = await supabase.auth.signUp({
     email: validated.data.email,
     password: validated.data.password,
+    options: {
+      data: {
+        nome: validated.data.nome,
+        telefone: validated.data.telefone,
+        segmento: validated.data.segmento,
+      },
+    },
   });
 
   if (authError) {
@@ -70,21 +80,11 @@ export async function signup(formData: FormData) {
     };
   }
 
-  // Create user profile
-  const { error: profileError } = await supabase.from("users").insert({
-    id: authData.user.id,
-    email: validated.data.email,
-    name: validated.data.name,
-  });
-
-  if (profileError) {
-    return {
-      error: "Erro ao criar perfil de usuário",
-    };
-  }
+  console.log("✅ Usuário criado no Auth:", authData.user.id);
+  console.log("   O perfil na tabela 'users' será criado automaticamente pelo trigger.");
 
   revalidatePath("/", "layout");
-  redirect("/onboarding");
+  redirect("/auth/confirm-email");
 }
 
 export async function logout() {
@@ -93,4 +93,3 @@ export async function logout() {
   revalidatePath("/", "layout");
   redirect("/auth/login");
 }
-

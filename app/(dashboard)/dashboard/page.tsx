@@ -1,4 +1,9 @@
+import { Metadata } from "next";
 import { getUser } from "@/lib/auth";
+
+export const metadata: Metadata = {
+  title: "Dashboard - Fluzz",
+};
 import { createClient } from "@/lib/supabase/server";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {

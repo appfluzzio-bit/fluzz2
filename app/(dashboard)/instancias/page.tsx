@@ -1,4 +1,9 @@
+import { Metadata } from "next";
 import { Card, CardContent } from "@/components/ui/card";
+
+export const metadata: Metadata = {
+  title: "Whatsapp - Fluzz",
+};
 import { Zap } from "lucide-react";
 
 // TODO: Implement WhatsApp instances functionality

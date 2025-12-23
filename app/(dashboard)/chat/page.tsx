@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -98,6 +98,10 @@ export default function ChatPage() {
   const [selectedChat, setSelectedChat] = useState(mockConversations[0]);
   const [message, setMessage] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
+
+  useEffect(() => {
+    document.title = "Chat - Fluzz";
+  }, []);
 
   const filteredConversations = mockConversations.filter((conv) =>
     conv.name.toLowerCase().includes(searchQuery.toLowerCase())

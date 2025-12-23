@@ -144,9 +144,14 @@ export function Sidebar() {
               />
             </div>
           ) : (
-            <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-              <span className="text-2xl font-bold text-white">F</span>
-            </div>
+            <Image
+              src="/images/fluzz-icone-painel.png"
+              alt="Fluzz"
+              width={40}
+              height={40}
+              priority
+              className="transition-opacity duration-300"
+            />
           )}
         </Link>
       </div>

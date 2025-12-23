@@ -8,333 +8,207 @@ Plataforma SaaS multi-tenant completa para engajamento profissional via WhatsApp
 - **Linguagem**: TypeScript
 - **Estilização**: TailwindCSS + Shadcn UI
 - **Banco de Dados**: Supabase (PostgreSQL)
-- **Autenticação**: Supabase Auth
+- **Autenticação**: Supabase Auth (com confirmação de email)
 - **Validação**: Zod
 - **Tema**: next-themes (Light/Dark mode)
 
-## 🏗️ Arquitetura
+## 📝 Estratégia de Desenvolvimento
 
-### Estrutura Multi-tenant
+Este projeto segue uma abordagem **Frontend First** com dados mockados:
 
-```
-Organization (Billing & Credits)
-  └── Workspaces (Unlimited)
-       └── Departments
-            └── Members
-```
+### Como Funciona
 
-### Níveis de Permissão
+1. ✅ **Frontend com Mock Data**: Todo o frontend é desenvolvido primeiro com dados simulados
+2. ✅ **Aprovação da UI/UX**: Estrutura e experiência são validadas antes da implementação backend
+3. ✅ **Criação Incremental de Tabelas**: Após aprovação, tabelas são criadas progressivamente no Supabase
+4. ✅ **Integração Backend**: Integração com dados reais é feita de forma incremental
 
-- **Organization**: `owner`, `admin` (acesso total, gerencia billing e créditos)
-- **Workspace**: `admin`, `manager`, `agent`, `viewer` (acesso apenas ao workspace)
-- **Department**: `manager`, `agent` (atua no atendimento)
+### Benefícios
 
-## 📋 Funcionalidades Implementadas (MVP)
+- Desenvolvimento mais rápido do frontend
+- Iterações de design sem depender do backend
+- Flexibilidade para mudanças de requisitos
+- Melhor experiência de desenvolvimento
 
-### ✅ Autenticação
-- Login/Signup com Supabase Auth
-- Proteção de rotas com middleware
-- Gestão de sessões
+## 🗄️ Banco de Dados
 
-### ✅ Onboarding
-- Criação de organização ao primeiro acesso
-- Workspace padrão automático
-- Wallet de créditos inicial
-
-### ✅ Dashboard
-- Overview da organização
-- Saldo de créditos e movimentações
-- Plano atual
-- Ações rápidas
-
-### ✅ Workspaces (CRUD)
-- Criar/Editar/Excluir workspaces
-- Slug único por organização
-- Workspace switcher no header
-
-### ✅ Departamentos (CRUD)
-- Criar/Editar/Excluir departments
-- Organização por workspace
-- Gestão de membros (TODO)
-
-### ✅ Equipe e Convites
-- Convidar usuários para organização
-- Convidar usuários para workspace
-- Sistema de convites com expiração
-- Aceite de convites
-- Gestão de membros
-
-### ✅ Layout e Navegação
-- Sidebar responsiva
-- Header com workspace switcher
-- Light/Dark mode toggle
-- Menu de usuário
-
-## 🔜 Próximas Implementações
-
-- [ ] Campanhas de mensagens
-- [ ] Gestão de contatos
-- [ ] Integração WhatsApp (Evolution API)
-- [ ] Templates de mensagens
-- [ ] Dashboard de métricas
-- [ ] Billing e Stripe
-- [ ] Gestão de créditos
-- [ ] Sistema de notificações
-- [ ] Logs e auditoria
-
-## 🛠️ Setup do Projeto
-
-### 1. Clonar e Instalar Dependências
-
-```bash
-cd fluzz2
-npm install
-```
-
-### 2. Configurar Supabase
-
-Crie um projeto no [Supabase](https://supabase.com) e execute o seguinte schema SQL:
+### Tabela Atual: `users`
 
 ```sql
--- Organizations
-CREATE TABLE organizations (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  name TEXT NOT NULL,
-  slug TEXT UNIQUE NOT NULL,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Users
 CREATE TABLE users (
-  id UUID PRIMARY KEY REFERENCES auth.users(id),
-  email TEXT NOT NULL,
-  full_name TEXT,
-  avatar_url TEXT,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  nome TEXT NOT NULL,
+  email TEXT UNIQUE NOT NULL,
+  telefone TEXT,
+  segmento TEXT,
+  created_at TIMESTAMP DEFAULT NOW(),
+  deleted_at TIMESTAMP
 );
-
--- Organization Members
-CREATE TABLE organization_members (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE,
-  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-  role TEXT CHECK (role IN ('owner', 'admin')) NOT NULL,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW(),
-  UNIQUE(organization_id, user_id)
-);
-
--- Workspaces
-CREATE TABLE workspaces (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE,
-  name TEXT NOT NULL,
-  slug TEXT NOT NULL,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW(),
-  UNIQUE(organization_id, slug)
-);
-
--- Workspace Members
-CREATE TABLE workspace_members (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  workspace_id UUID REFERENCES workspaces(id) ON DELETE CASCADE,
-  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-  role TEXT CHECK (role IN ('admin', 'manager', 'agent', 'viewer')) NOT NULL,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW(),
-  UNIQUE(workspace_id, user_id)
-);
-
--- Departments
-CREATE TABLE departments (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  workspace_id UUID REFERENCES workspaces(id) ON DELETE CASCADE,
-  name TEXT NOT NULL,
-  description TEXT,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Department Members
-CREATE TABLE department_members (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  department_id UUID REFERENCES departments(id) ON DELETE CASCADE,
-  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-  role TEXT CHECK (role IN ('manager', 'agent')) NOT NULL,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW(),
-  UNIQUE(department_id, user_id)
-);
-
--- Invites
-CREATE TABLE invites (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE,
-  workspace_id UUID REFERENCES workspaces(id) ON DELETE CASCADE,
-  email TEXT NOT NULL,
-  role TEXT NOT NULL,
-  status TEXT CHECK (status IN ('pending', 'accepted', 'expired')) DEFAULT 'pending',
-  expires_at TIMESTAMPTZ NOT NULL,
-  invited_by UUID REFERENCES users(id),
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Plans
-CREATE TABLE plans (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  name TEXT NOT NULL,
-  slug TEXT UNIQUE NOT NULL,
-  description TEXT,
-  price_monthly DECIMAL(10,2) NOT NULL,
-  price_yearly DECIMAL(10,2) NOT NULL,
-  features JSONB,
-  is_active BOOLEAN DEFAULT true,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Organization Subscriptions
-CREATE TABLE organization_subscriptions (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE,
-  plan_id UUID REFERENCES plans(id),
-  status TEXT NOT NULL,
-  current_period_start TIMESTAMPTZ NOT NULL,
-  current_period_end TIMESTAMPTZ NOT NULL,
-  cancel_at TIMESTAMPTZ,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Credit Wallets
-CREATE TABLE credit_wallets (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE UNIQUE,
-  balance INTEGER DEFAULT 0,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Credit Ledger
-CREATE TABLE credit_ledger (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  wallet_id UUID REFERENCES credit_wallets(id) ON DELETE CASCADE,
-  amount INTEGER NOT NULL,
-  type TEXT CHECK (type IN ('credit', 'debit')) NOT NULL,
-  description TEXT NOT NULL,
-  reference_id TEXT,
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Indexes
-CREATE INDEX idx_org_members_user ON organization_members(user_id);
-CREATE INDEX idx_org_members_org ON organization_members(organization_id);
-CREATE INDEX idx_workspace_members_user ON workspace_members(user_id);
-CREATE INDEX idx_workspace_members_workspace ON workspace_members(workspace_id);
-CREATE INDEX idx_workspaces_org ON workspaces(organization_id);
-CREATE INDEX idx_departments_workspace ON departments(workspace_id);
-CREATE INDEX idx_invites_email ON invites(email);
-CREATE INDEX idx_invites_status ON invites(status);
 ```
 
-### 3. Configurar Variáveis de Ambiente
+**Campos:**
+- `id`: UUID gerado automaticamente
+- `nome`: Nome completo do usuário
+- `email`: Email único para login
+- `telefone`: Telefone de contato (opcional)
+- `segmento`: Segmento de atuação do usuário (opcional)
+- `created_at`: Data de criação
+- `deleted_at`: Soft delete (null = ativo)
 
-Crie um arquivo `.env.local`:
+**Obs**: Novas tabelas serão criadas conforme o desenvolvimento avança.
+
+## 🔐 Autenticação
+
+A autenticação usa Supabase Auth com **confirmação de email obrigatória**:
+
+1. Usuário preenche cadastro (nome, email, telefone, segmento, senha)
+2. Sistema envia email de confirmação
+3. Usuário confirma email clicando no link
+4. Acesso é liberado após confirmação
+
+## 🎨 Funcionalidades Implementadas
+
+### ✅ Layout e Design
+- Sidebar recolhível com menu responsivo
+- Header com toggle de tema (Light/Dark)
+- Logo dinâmica baseada no tema
+- Transições suaves em todos os componentes
+- Layout moderno e profissional
+
+### ✅ Sistema de Temas
+- Light Mode e Dark Mode
+- Transições suaves ao trocar tema
+- Logos adaptativas
+- Persistência da preferência
+
+### ✅ Autenticação
+- Cadastro com campos customizados
+- Login com email/senha
+- Confirmação de email obrigatória
+- Página de aviso pós-cadastro
+
+### ✅ Páginas (Mock Data)
+- Dashboard
+- Chat (estilo WhatsApp Web)
+- Campanhas
+- Contatos
+- WhatsApp (Instâncias)
+- Departamentos
+- Workspaces
+- Usuários
+- Assinatura
+- Templates de Mensagens
+
+## 🚀 Setup do Projeto
+
+### 1. Clone e instale dependências
+
+```bash
+git clone [url-do-repositorio]
+cd fluzz2
+yarn install
+```
+
+### 2. Configure as variáveis de ambiente
+
+Crie um arquivo `.env.local` na raiz do projeto:
 
 ```env
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
-NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
-### 4. Executar o Projeto
+### 3. Configure o Supabase
+
+> 📖 **Leia**: `ARQUITETURA-AUTH.md` para entender por que usamos Database Triggers (não é gambiarra, é prática oficial do Supabase!)
+
+#### Passo 1: Criar trigger de sincronização automática
+
+No SQL Editor do Supabase, execute o arquivo `supabase-trigger-auto.sql`:
+
+Copie e cole todo o conteúdo do arquivo no SQL Editor e clique em **RUN**.
+
+**O que faz:**
+- ✅ Cria função que sincroniza `auth.users` → `public.users`
+- ✅ Cria trigger que executa automaticamente após cada registro
+- ✅ 100% confiável e profissional
+
+#### Passo 2: Sincronizar usuários existentes
+
+Se você já criou usuários de teste, execute `fix-existing-users.sql` para criar os perfis retroativos.
+
+> ✅ **Pronto!** Agora qualquer novo cadastro cria o perfil automaticamente!
+
+#### Ativar Confirmação de Email
+
+1. Acesse: Authentication > Settings > Email Auth
+2. Ative "Enable email confirmations"
+3. Configure o template de email (opcional)
+
+### 4. Inicie o servidor
 
 ```bash
-npm run dev
+yarn dev
 ```
 
-Acesse http://localhost:3000
+Acesse: `http://localhost:3000`
 
 ## 📁 Estrutura de Pastas
 
 ```
 fluzz2/
-├── app/
+├── app/                      # App Router do Next.js
 │   ├── (dashboard)/          # Rotas protegidas
-│   │   ├── dashboard/
-│   │   ├── workspaces/
-│   │   ├── departments/
-│   │   ├── team/
-│   │   ├── campanhas/        # TODO
-│   │   ├── contatos/         # TODO
-│   │   ├── instancias/       # TODO
-│   │   └── settings/
-│   ├── auth/
-│   │   ├── login/
-│   │   └── signup/
-│   ├── invite/[id]/          # Aceite de convites
-│   ├── onboarding/           # Criação de organização
-│   └── layout.tsx
-├── components/
-│   ├── ui/                   # Shadcn UI components
-│   ├── sidebar.tsx
-│   ├── header.tsx
-│   ├── theme-provider.tsx
-│   └── workspace-switcher.tsx
-├── lib/
-│   ├── supabase/
-│   │   ├── client.ts
-│   │   └── server.ts
-│   ├── auth.ts
-│   ├── permissions.ts
-│   ├── validations/
-│   ├── workspace-context.tsx
-│   └── utils.ts
-├── types/
-│   ├── database.ts
-│   └── index.ts
-└── public/
-    └── images/
+│   │   ├── dashboard/        # Página principal
+│   │   ├── chat/             # Chat estilo WhatsApp
+│   │   ├── campanhas/        # Campanhas
+│   │   ├── contatos/         # Contatos
+│   │   ├── instancias/       # WhatsApp
+│   │   ├── departments/      # Departamentos
+│   │   ├── workspaces/       # Workspaces
+│   │   ├── team/             # Usuários
+│   │   ├── subscription/     # Assinatura
+│   │   └── templates/        # Templates
+│   ├── auth/                 # Autenticação
+│   │   ├── login/            # Login
+│   │   └── signup/           # Cadastro
+│   └── onboarding/           # Onboarding
+├── components/               # Componentes React
+│   ├── ui/                   # Componentes Shadcn UI
+│   ├── sidebar.tsx           # Menu lateral
+│   ├── header.tsx            # Cabeçalho
+│   └── theme-toggle.tsx      # Toggle de tema
+├── lib/                      # Utilitários e contextos
+│   ├── supabase/             # Clientes Supabase
+│   ├── workspace-context.tsx # Contexto de workspace
+│   └── sidebar-context.tsx   # Contexto da sidebar
+└── public/                   # Arquivos estáticos
+    └── images/               # Logos e ícones
 ```
 
-## 🎨 Design System
+## 🎯 Próximos Passos
 
-- **Cores Principais**: Verde (#4ADE80) e Dark (#1A1A1A)
-- **Fonte**: Inter
-- **Componentes**: Shadcn UI (Radix UI + TailwindCSS)
-- **Responsivo**: Mobile-first
+1. [ ] Finalizar todas as telas com mock data
+2. [ ] Aprovar UI/UX completo
+3. [ ] Criar tabelas incrementalmente conforme necessário
+4. [ ] Integrar backend progressivamente
+5. [ ] Implementar funcionalidades reais
 
-## 🔐 Segurança
+## 📝 Notas Importantes
 
-- Server Actions para operações sensíveis
-- Validação com Zod em todas as entradas
-- Middleware de autenticação
-- Verificação de permissões no backend
-- RLS (Row Level Security) - TODO
+- **Todos os dados são mockados** exceto autenticação
+- Sidebar pode ser recolhida/expandida
+- Sistema de temas funcional (Light/Dark)
+- Confirmação de email é obrigatória no cadastro
+- Frontend está pronto para receber dados reais quando necessário
 
-## 📝 Regras de Negócio
+## 🤝 Contribuindo
 
-1. **Billing** e créditos vivem no nível Organization
-2. **Workspaces** são ilimitados
-3. **Usuários** entram apenas por convite
-4. **Org Admins/Owners** veem todos os workspaces
-5. **Workspace members** veem apenas seus workspaces
-6. **Department members** atuam no atendimento
-
-## 🧪 Testes
-
-TODO: Implementar testes
-
-## 📄 Licença
-
-Proprietário - Fluzz
+Este é um projeto em desenvolvimento ativo. A estrutura do banco de dados será expandida conforme necessário.
 
 ---
 
-**Desenvolvido com ❤️ usando Next.js e Supabase**
-
+**Versão**: 2.0 (Frontend First)  
+**Status**: Em Desenvolvimento  
+**Última Atualização**: Dezembro 2024
