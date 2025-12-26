@@ -1,4 +1,9 @@
+import { Metadata } from "next";
 import { Card, CardContent } from "@/components/ui/card";
+
+export const metadata: Metadata = {
+  title: "Campanhas - Fluzz",
+};
 import { Send } from "lucide-react";
 
 // TODO: Implement campaigns functionality

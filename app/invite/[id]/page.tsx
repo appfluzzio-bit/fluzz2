@@ -1,37 +1,123 @@
-import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
-import { getUser } from "@/lib/auth";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { acceptInvite } from "./actions";
-import { CheckCircle, XCircle } from "lucide-react";
-import Image from "next/image";
+"use client";
 
-export default async function InvitePage({
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { acceptInvite } from "./actions";
+import { CheckCircle, XCircle, Eye, EyeOff, Loader2 } from "lucide-react";
+import Image from "next/image";
+import { useToast } from "@/components/ui/use-toast";
+
+export default function InvitePage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { id } = await params;
-  const supabase = await createClient();
-  const user = await getUser();
+  const [id, setId] = useState<string>("");
+  const [invite, setInvite] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const router = useRouter();
+  const { toast } = useToast();
 
-  // Get invite
-  const { data: invite, error } = await supabase
-    .from("invites")
-    .select("*, organizations(*), workspaces(*)")
-    .eq("id", id)
-    .single();
+  useEffect(() => {
+    params.then(({ id: inviteId }) => {
+      setId(inviteId);
+      loadInvite(inviteId);
+    });
+  }, []);
 
-  if (error || !invite) {
+  async function loadInvite(inviteId: string) {
+    try {
+      const response = await fetch(`/api/invites/${inviteId}`);
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error || "Erro ao carregar convite");
+        return;
+      }
+
+      setInvite(data);
+    } catch (err) {
+      setError("Erro ao carregar convite");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setSubmitting(true);
+
+    const formData = new FormData(e.currentTarget);
+    const password = formData.get("password") as string;
+    const confirmPassword = formData.get("confirm_password") as string;
+
+    if (password !== confirmPassword) {
+      toast({
+        title: "Erro",
+        description: "As senhas não coincidem",
+        variant: "destructive",
+      });
+      setSubmitting(false);
+      return;
+    }
+
+    if (password.length < 6) {
+      toast({
+        title: "Erro",
+        description: "A senha deve ter no mínimo 6 caracteres",
+        variant: "destructive",
+      });
+      setSubmitting(false);
+      return;
+    }
+
+    formData.append("invite_id", id);
+
+    const result = await acceptInvite(formData);
+
+    if (result.error) {
+      toast({
+        title: "Erro",
+        description: result.error,
+        variant: "destructive",
+      });
+      setSubmitting(false);
+    } else {
+      toast({
+        title: "Sucesso",
+        description: "Bem-vindo! Redirecionando...",
+      });
+      setTimeout(() => {
+        router.push("/dashboard");
+      }, 1500);
+    }
+  }
+
+  if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center p-8">
+      <div className="flex min-h-screen items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex min-h-screen items-center justify-center p-8 bg-gradient-to-br from-background to-muted/20">
         <Card className="w-full max-w-md">
           <CardContent className="flex flex-col items-center py-12">
-            <XCircle className="mb-4 h-12 w-12 text-destructive" />
-            <h2 className="mb-2 text-xl font-semibold">Convite não encontrado</h2>
+            <XCircle className="mb-4 h-16 w-16 text-destructive" />
+            <h2 className="mb-2 text-2xl font-bold">Convite Inválido</h2>
             <p className="text-center text-sm text-muted-foreground">
-              Este convite não existe ou já foi utilizado.
+              {error}
             </p>
           </CardContent>
         </Card>
@@ -39,91 +125,128 @@ export default async function InvitePage({
     );
   }
 
-  // Check if expired
-  if (
-    invite.status !== "pending" ||
-    new Date(invite.expires_at) < new Date()
-  ) {
-    return (
-      <div className="flex min-h-screen items-center justify-center p-8">
-        <Card className="w-full max-w-md">
-          <CardContent className="flex flex-col items-center py-12">
-            <XCircle className="mb-4 h-12 w-12 text-destructive" />
-            <h2 className="mb-2 text-xl font-semibold">Convite expirado</h2>
-            <p className="text-center text-sm text-muted-foreground">
-              Este convite expirou ou já foi aceito.
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  // Check if user's email matches invite
-  if (user && user.email !== invite.email) {
-    return (
-      <div className="flex min-h-screen items-center justify-center p-8">
-        <Card className="w-full max-w-md">
-          <CardContent className="flex flex-col items-center py-12">
-            <XCircle className="mb-4 h-12 w-12 text-destructive" />
-            <h2 className="mb-2 text-xl font-semibold">E-mail não corresponde</h2>
-            <p className="text-center text-sm text-muted-foreground">
-              Este convite foi enviado para {invite.email}. Por favor, faça login
-              com o e-mail correto.
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  // If not logged in, redirect to login with return URL
-  if (!user) {
-    redirect(`/auth/login?redirect=/invite/${id}`);
-  }
-
-  const targetName = invite.workspace_id
-    ? (invite.workspaces as any)?.name
-    : (invite.organizations as any)?.name;
+  const metadata = invite?.metadata || {};
+  const targetName = invite?.workspace_name || invite?.organization_name;
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-8">
-      <div className="w-full max-w-md">
+    <div className="flex min-h-screen items-center justify-center p-8 bg-gradient-to-br from-background to-muted/20">
+      <div className="w-full max-w-lg">
         <div className="mb-8 flex justify-center">
           <Image
             src="/images/fluzz-logo1-painel.png"
             alt="Fluzz"
-            width={150}
-            height={48}
+            width={180}
+            height={60}
+            priority
           />
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-center">Você foi convidado!</CardTitle>
+        <Card className="border-primary/20 shadow-xl">
+          <CardHeader className="text-center space-y-2">
+            <CardTitle className="text-2xl">Bem-vindo ao Fluzz!</CardTitle>
+            <CardDescription>
+              Complete seu cadastro para começar
+            </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="text-center">
-              <p className="mb-4 text-sm text-muted-foreground">
-                Você foi convidado para fazer parte de:
+          <CardContent className="space-y-6">
+            <div className="rounded-lg bg-primary/5 border border-primary/20 p-4 text-center">
+              <p className="mb-2 text-sm text-muted-foreground">
+                Você foi convidado para:
               </p>
-              <p className="mb-2 text-xl font-bold">{targetName}</p>
-              <p className="text-sm text-muted-foreground">
-                como {invite.role}
+              <p className="text-xl font-bold text-primary">{targetName}</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                como <span className="font-semibold">{invite?.role}</span>
               </p>
             </div>
 
-            <form action={acceptInvite}>
-              <input type="hidden" name="invite_id" value={invite.id} />
-              <Button type="submit" className="w-full" size="lg">
-                <CheckCircle className="mr-2 h-5 w-5" />
-                Aceitar Convite
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email">E-mail</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={invite?.email}
+                  disabled
+                  className="bg-muted"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="password">Senha *</Label>
+                <div className="relative">
+                  <Input
+                    id="password"
+                    name="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Crie uma senha segura"
+                    required
+                    minLength={6}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Mínimo de 6 caracteres
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="confirm_password">Confirmar Senha *</Label>
+                <div className="relative">
+                  <Input
+                    id="confirm_password"
+                    name="confirm_password"
+                    type={showConfirmPassword ? "text" : "password"}
+                    placeholder="Digite a senha novamente"
+                    required
+                    minLength={6}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              <Button
+                type="submit"
+                className="w-full"
+                size="lg"
+                disabled={submitting}
+              >
+                {submitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    Criando conta...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle className="mr-2 h-5 w-5" />
+                    Aceitar Convite e Criar Conta
+                  </>
+                )}
               </Button>
             </form>
 
             <p className="text-center text-xs text-muted-foreground">
-              Ao aceitar, você terá acesso às funcionalidades conforme sua
-              função.
+              Ao aceitar o convite, você concorda com nossos termos de uso e
+              política de privacidade.
             </p>
           </CardContent>
         </Card>

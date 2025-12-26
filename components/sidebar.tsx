@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
 import { useTheme } from "next-themes";
 import {
@@ -14,6 +14,7 @@ import {
   CreditCard,
   FileText,
   Layers,
+  Plus,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
@@ -23,6 +24,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
@@ -98,6 +100,7 @@ const settings = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   const { theme } = useTheme();
   const { workspaces, currentWorkspace, setCurrentWorkspace } = useWorkspace();
   const { isExpanded } = useSidebar();
@@ -144,9 +147,14 @@ export function Sidebar() {
               />
             </div>
           ) : (
-            <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-              <span className="text-2xl font-bold text-white">F</span>
-            </div>
+            <Image
+              src="/images/fluzz-icone-painel.png"
+              alt="Fluzz"
+              width={40}
+              height={40}
+              priority
+              className="transition-opacity duration-300"
+            />
           )}
         </Link>
       </div>
@@ -158,24 +166,37 @@ export function Sidebar() {
         </div>
       )}
 
-      {/* Workspace Switcher - só aparece se tiver mais de 1 workspace e sidebar expandida */}
-      {workspaces.length > 1 && isExpanded && (
+      {/* Workspace Switcher - aparece quando sidebar está expandida e há MAIS DE 1 workspace */}
+      {isExpanded && workspaces.length > 1 && (
         <div className="px-4 pb-4">
           <DropdownMenu>
-            <DropdownMenuTrigger className="w-full">
+            <DropdownMenuTrigger className="w-full focus:outline-none focus-visible:outline-none focus-visible:ring-0">
               <div className="flex items-center justify-between rounded-xl bg-primary/10 dark:bg-primary/5 px-4 py-3 hover:bg-primary/15 dark:hover:bg-primary/10 transition-all duration-200 border border-primary/20">
                 <div className="flex items-center gap-3 min-w-0">
                   <div className="p-1.5 rounded-lg bg-primary/20">
                     <Building2 className="h-4 w-4 flex-shrink-0 text-primary" />
                   </div>
                   <span className="text-sm font-semibold truncate text-foreground">
-                    {currentWorkspace?.name || "Workspace"}
+                    {currentWorkspace?.name || "Todos"}
                   </span>
                 </div>
                 <ChevronDown className="h-4 w-4 flex-shrink-0 text-primary" />
               </div>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56">
+              {/* Opção "Todos" */}
+              <DropdownMenuItem
+                onClick={() => setCurrentWorkspace(null)}
+                className={cn(
+                  "cursor-pointer",
+                  currentWorkspace === null && "bg-primary/10 text-primary"
+                )}
+              >
+                <Building2 className="mr-2 h-4 w-4" />
+                Todos
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              {/* Lista de workspaces */}
               {workspaces.map((workspace) => (
                 <DropdownMenuItem
                   key={workspace.id}
@@ -189,6 +210,14 @@ export function Sidebar() {
                   {workspace.name}
                 </DropdownMenuItem>
               ))}
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => router.push("/workspaces")}
+                className="cursor-pointer text-primary"
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                Criar Novo Workspace
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

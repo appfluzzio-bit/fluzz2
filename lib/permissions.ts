@@ -142,6 +142,7 @@ export async function getUserWorkspaces(userId: string, organizationId: string) 
       .from("workspaces")
       .select("*")
       .eq("organization_id", organizationId)
+      .is("deleted_at", null)
       .order("name");
 
     return data || [];

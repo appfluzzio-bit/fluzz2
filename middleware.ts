@@ -59,10 +59,10 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Redirect to dashboard if accessing auth pages while authenticated
+  // Redirect to onboarding if accessing auth pages while authenticated
   if (user && isAuthPath) {
     const url = request.nextUrl.clone();
-    url.pathname = "/dashboard";
+    url.pathname = "/onboarding";
     return NextResponse.redirect(url);
   }
 

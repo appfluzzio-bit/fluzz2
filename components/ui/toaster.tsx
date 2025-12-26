@@ -29,7 +29,7 @@ export function Toaster() {
           </Toast>
         );
       })}
-      <ToastViewport />
+      <ToastViewport className="bottom-0 right-0 left-0 sm:left-1/2 sm:-translate-x-1/2 flex-col-reverse p-4 sm:bottom-4 sm:flex-col sm:max-w-md" />
     </ToastProvider>
   );
 }

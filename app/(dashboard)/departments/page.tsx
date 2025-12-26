@@ -45,6 +45,10 @@ export default function DepartmentsPage() {
   const { currentWorkspace } = useWorkspace();
   const [departments, setDepartments] = useState<Department[]>([]);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    document.title = "Departamentos - Fluzz";
+  }, []);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingDepartment, setEditingDepartment] = useState<Department | null>(
     null
@@ -102,6 +106,7 @@ export default function DepartmentsPage() {
       toast({
         title: "Sucesso",
         description: "Departamento criado com sucesso",
+        variant: "success",
       });
       setIsCreateOpen(false);
       loadDepartments();
@@ -128,6 +133,7 @@ export default function DepartmentsPage() {
       toast({
         title: "Sucesso",
         description: "Departamento atualizado com sucesso",
+        variant: "success",
       });
       setEditingDepartment(null);
       loadDepartments();
@@ -152,6 +158,7 @@ export default function DepartmentsPage() {
       toast({
         title: "Sucesso",
         description: "Departamento excluído com sucesso",
+        variant: "success",
       });
       setDeletingDepartment(null);
       loadDepartments();

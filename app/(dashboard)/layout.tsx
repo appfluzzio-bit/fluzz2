@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
 import { getUser } from "@/lib/auth";
-import { getUserWorkspaces } from "@/lib/permissions";
 import { Sidebar } from "@/components/sidebar";
 import { Header } from "@/components/header";
 import { WorkspaceProvider } from "@/lib/workspace-context";
@@ -18,26 +17,39 @@ export default async function DashboardLayout({
     redirect("/auth/login");
   }
 
-  // Get user's organizations
   const supabase = await createClient();
-  const { data: orgMembers } = await supabase
-    .from("organization_members")
-    .select("organization_id, organizations(*)")
-    .eq("user_id", user.id);
 
-  if (!orgMembers || orgMembers.length === 0) {
+  // Verificar se o usuário pertence a uma organização
+  const { data: orgMember, error } = await supabase
+    .from("organization_members")
+    .select("organization_id")
+    .eq("user_id", user.id)
+    .maybeSingle(); // Use maybeSingle() em vez de single() para evitar erro quando não há resultado
+
+  // Log para debug
+  console.log("🔍 Verificando organização no dashboard:", {
+    userId: user.id,
+    hasMember: !!orgMember,
+    error: error?.message,
+  });
+
+  if (!orgMember) {
+    console.log("❌ Usuário sem organização, redirecionando para onboarding");
     redirect("/onboarding");
   }
 
-  const organizationId = (orgMembers[0].organizations as any).id;
-
-  // Get user's workspaces
-  const workspaces = await getUserWorkspaces(user.id, organizationId);
+  // Carregar workspaces reais do banco de dados
+  const { data: workspaces } = await supabase
+    .from("workspaces")
+    .select("*")
+    .eq("organization_id", orgMember.organization_id)
+    .is("deleted_at", null)
+    .order("created_at", { ascending: true });
 
   return (
     <WorkspaceProvider
-      initialWorkspaces={workspaces}
-      initialWorkspace={workspaces[0] || null}
+      initialWorkspaces={workspaces || []}
+      initialWorkspace={workspaces?.[0] || null}
     >
       <SidebarProvider>
         <div className="flex h-screen">
@@ -53,4 +65,3 @@ export default async function DashboardLayout({
     </WorkspaceProvider>
   );
 }
-

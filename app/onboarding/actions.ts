@@ -1,27 +1,21 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { z } from "zod";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { getUser } from "@/lib/auth";
+import { z } from "zod";
 
-const organizationSchema = z.object({
+const createOrganizationSchema = z.object({
   name: z.string().min(2, "Nome deve ter no mínimo 2 caracteres"),
 });
 
 export async function createOrganization(formData: FormData) {
-  const user = await getUser();
-
-  if (!user) {
-    return { error: "Usuário não autenticado" };
-  }
-
   const rawData = {
     name: formData.get("name") as string,
   };
 
-  const validated = organizationSchema.safeParse(rawData);
+  // Validar dados
+  const validated = createOrganizationSchema.safeParse(rawData);
 
   if (!validated.success) {
     return {
@@ -31,93 +25,39 @@ export async function createOrganization(formData: FormData) {
 
   const supabase = await createClient();
 
-  // Create organization
-  const { data: org, error: orgError } = await supabase
-    .from("organizations")
-    .insert({
-      name: validated.data.name,
-      timezone: "America/Sao_Paulo",
-      currency: "BRL",
-    })
-    .select()
-    .single();
+  // Verificar se o usuário está autenticado
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return {
+      error: "Usuário não autenticado",
+    };
+  }
+
+  // Criar a organização usando a função RPC (bypassa RLS de forma segura)
+  const { data: organization, error: orgError } = await supabase.rpc(
+    "create_organization_with_owner",
+    {
+      org_name: validated.data.name,
+      owner_user_id: user.id,
+    }
+  );
 
   if (orgError) {
-    console.error("Erro ao criar organização:", orgError);
+    console.error("❌ Erro ao criar organização:", orgError);
     return {
       error: `Erro ao criar organização: ${orgError.message}`,
     };
   }
 
-  if (!org) {
-    return {
-      error: "Erro ao criar organização",
-    };
-  }
+  console.log("✅ Organização criada:", organization);
 
-  // Create organization membership (owner)
-  const { error: memberError } = await supabase
-    .from("organization_members")
-    .insert({
-      organization_id: org.id,
-      user_id: user.id,
-      role: "owner",
-    });
-
-  if (memberError) {
-    console.error("Erro ao criar membership:", memberError);
-    return {
-      error: `Erro ao criar membership: ${memberError.message}`,
-    };
-  }
-
-  // Create default workspace
-  const { data: workspace, error: workspaceError } = await supabase
-    .from("workspaces")
-    .insert({
-      organization_id: org.id,
-      name: "Principal",
-      slug: "principal",
-    })
-    .select()
-    .single();
-
-  if (workspaceError) {
-    console.error("Erro ao criar workspace:", workspaceError);
-    return {
-      error: `Erro ao criar workspace: ${workspaceError.message}`,
-    };
-  }
-
-  if (!workspace) {
-    return {
-      error: "Erro ao criar workspace padrão",
-    };
-  }
-
-  // Add user to workspace
-  const { error: workspaceMemberError } = await supabase
-    .from("workspace_members")
-    .insert({
-      workspace_id: workspace.id,
-      user_id: user.id,
-      role: "admin",
-    });
-
-  if (workspaceMemberError) {
-    console.error("Erro ao adicionar usuário ao workspace:", workspaceMemberError);
-    return {
-      error: `Erro ao adicionar usuário ao workspace: ${workspaceMemberError.message}`,
-    };
-  }
-
-  // Create credit wallet
-  await supabase.from("credit_wallets").insert({
-    organization_id: org.id,
-    balance: 0,
-  });
-
+  // Revalidar múltiplos caminhos para garantir que o cache seja limpo
   revalidatePath("/", "layout");
+  revalidatePath("/dashboard", "layout");
+  revalidatePath("/onboarding", "layout");
+  
   redirect("/dashboard");
 }
-

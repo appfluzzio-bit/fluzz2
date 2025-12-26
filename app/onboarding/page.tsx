@@ -1,18 +1,23 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useEffect, useTransition } from "react";
 import Image from "next/image";
-import { createOrganization } from "./actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
 import { Loader2 } from "lucide-react";
+import { createOrganization } from "./actions";
 
 export default function OnboardingPage() {
   const [isPending, startTransition] = useTransition();
+  const [organizationName, setOrganizationName] = useState("");
   const { toast } = useToast();
+
+  useEffect(() => {
+    document.title = "Criar Organização - Fluzz";
+  }, []);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -20,16 +25,21 @@ export default function OnboardingPage() {
     const formData = new FormData(e.currentTarget);
 
     startTransition(async () => {
-      const result = await createOrganization(formData);
+      try {
+        const result = await createOrganization(formData);
 
-      if (result?.error) {
-        toast({
-          title: "Erro",
-          description: result.error,
-          variant: "destructive",
-        });
+        if (result?.error) {
+          toast({
+            title: "Ops! Algo deu errado",
+            description: result.error,
+            variant: "destructive",
+          });
+        }
+        // Se não houver erro, o redirect será feito automaticamente
+      } catch (error) {
+        // Se chegou aqui, provavelmente é um redirect (comportamento esperado)
+        console.log("Redirecionando para dashboard...");
       }
-      // Se não houver erro, o redirect será feito automaticamente
     });
   }
 
@@ -63,6 +73,8 @@ export default function OnboardingPage() {
                 placeholder="Minha Empresa"
                 required
                 disabled={isPending}
+                value={organizationName}
+                onChange={(e) => setOrganizationName(e.target.value)}
               />
             </div>
 
@@ -70,7 +82,7 @@ export default function OnboardingPage() {
               {isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Criando...
+                  Criando organização...
                 </>
               ) : (
                 "Criar Organização"

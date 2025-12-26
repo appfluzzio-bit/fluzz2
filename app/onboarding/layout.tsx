@@ -13,18 +13,26 @@ export default async function OnboardingLayout({
     redirect("/auth/login");
   }
 
-  // Check if user already has an organization
+  // Verificar se o usuário já pertence a uma organização
   const supabase = await createClient();
-  const { data: orgMembers } = await supabase
+  const { data: existingMember, error } = await supabase
     .from("organization_members")
     .select("id")
     .eq("user_id", user.id)
-    .limit(1);
+    .maybeSingle(); // Use maybeSingle() em vez de single() para evitar erro quando não há resultado
 
-  if (orgMembers && orgMembers.length > 0) {
+  // Log para debug
+  console.log("🔍 Verificando organização no onboarding:", {
+    userId: user.id,
+    hasMember: !!existingMember,
+    error: error?.message,
+  });
+
+  // Se já pertence a uma organização, redirecionar para o dashboard
+  if (existingMember) {
+    console.log("✅ Usuário já tem organização, redirecionando para dashboard");
     redirect("/dashboard");
   }
 
   return <>{children}</>;
 }
-
