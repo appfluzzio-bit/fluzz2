@@ -81,13 +81,20 @@ A autenticação usa Supabase Auth com **confirmação de email obrigatória**:
 - Logos adaptativas
 - Persistência da preferência
 
-### ✅ Autenticação
-- Cadastro com campos customizados
+### ✅ Autenticação Completa
+- Cadastro com campos customizados (nome, email, telefone, segmento)
 - Login com email/senha
 - Confirmação de email obrigatória
 - Página de aviso pós-cadastro
+- Logout
 
-### ✅ Páginas (Mock Data)
+### ✅ Organizações
+- Criar organização no onboarding
+- Vínculo automático usuário → organização
+- Usuário criador recebe role de "owner"
+- Verificação de organização em todas as rotas protegidas
+
+### ✅ Páginas (Workspaces ainda com Mock Data)
 - Dashboard
 - Chat (estilo WhatsApp Web)
 - Campanhas
@@ -121,26 +128,47 @@ SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 
 ### 3. Configure o Supabase
 
-> 📖 **Leia**: `ARQUITETURA-AUTH.md` para entender por que usamos Database Triggers (não é gambiarra, é prática oficial do Supabase!)
+#### Passo 1: Criar tabela users
 
-#### Passo 1: Criar trigger de sincronização automática
+Se ainda não criou, execute no SQL Editor:
 
-No SQL Editor do Supabase, execute o arquivo `supabase-trigger-auto.sql`:
+```sql
+CREATE TABLE IF NOT EXISTS users (
+  id UUID PRIMARY KEY,
+  nome TEXT NOT NULL,
+  email TEXT UNIQUE NOT NULL,
+  telefone TEXT,
+  segmento TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  deleted_at TIMESTAMP WITH TIME ZONE
+);
+```
 
-Copie e cole todo o conteúdo do arquivo no SQL Editor e clique em **RUN**.
+#### Passo 2: Criar tabelas de organizações
 
-**O que faz:**
-- ✅ Cria função que sincroniza `auth.users` → `public.users`
-- ✅ Cria trigger que executa automaticamente após cada registro
-- ✅ 100% confiável e profissional
+Execute o arquivo `supabase-organizations.sql` no SQL Editor:
 
-#### Passo 2: Sincronizar usuários existentes
+```sql
+-- Criar tabela organizations
+CREATE TABLE IF NOT EXISTS organizations (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  deleted_at TIMESTAMP WITH TIME ZONE
+);
 
-Se você já criou usuários de teste, execute `fix-existing-users.sql` para criar os perfis retroativos.
+-- Criar tabela organization_members (vínculo users <-> organizations)
+CREATE TABLE IF NOT EXISTS organization_members (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  role TEXT NOT NULL DEFAULT 'owner' CHECK (role IN ('owner', 'admin', 'member')),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  UNIQUE(organization_id, user_id)
+);
+```
 
-> ✅ **Pronto!** Agora qualquer novo cadastro cria o perfil automaticamente!
-
-#### Ativar Confirmação de Email
+#### Passo 3: Ativar Confirmação de Email (Opcional)
 
 1. Acesse: Authentication > Settings > Email Auth
 2. Ative "Enable email confirmations"

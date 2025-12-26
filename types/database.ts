@@ -38,6 +38,49 @@ export interface Database {
           deleted_at?: string | null;
         };
       };
+      organizations: {
+        Row: {
+          id: string;
+          name: string;
+          created_at: string;
+          deleted_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          created_at?: string;
+          deleted_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          created_at?: string;
+          deleted_at?: string | null;
+        };
+      };
+      organization_members: {
+        Row: {
+          id: string;
+          organization_id: string;
+          user_id: string;
+          role: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          organization_id: string;
+          user_id: string;
+          role?: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          organization_id?: string;
+          user_id?: string;
+          role?: string;
+          created_at?: string;
+        };
+      };
     };
     Views: {
       [_ in never]: never;
