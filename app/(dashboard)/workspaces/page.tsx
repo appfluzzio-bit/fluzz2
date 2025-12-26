@@ -54,6 +54,7 @@ export default function WorkspacesPage() {
 
   useEffect(() => {
     loadData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function loadData() {
@@ -69,7 +70,7 @@ export default function WorkspacesPage() {
         .eq("user_id", user.id)
         .single();
 
-      const org = (orgMember?.organizations as any) as Organization;
+      const org = ((orgMember as any)?.organizations) as Organization;
       setOrganization(org);
 
       // Get workspaces (apenas não deletados)
@@ -292,7 +293,7 @@ export default function WorkspacesPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir Workspace</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja excluir o workspace "{deletingWorkspace?.name}"?
+              Tem certeza que deseja excluir o workspace &quot;{deletingWorkspace?.name}&quot;?
               Esta ação não pode ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>

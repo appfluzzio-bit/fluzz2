@@ -9,8 +9,8 @@ export async function GET(
   const supabase = await createClient();
 
   // Get invite with related data
-  const { data: invite, error } = await supabase
-    .from("invites")
+  const { data: invite, error } = await (supabase
+    .from("invites") as any)
     .select(
       `
       *,
@@ -29,7 +29,7 @@ export async function GET(
   }
 
   // Check if expired
-  if (invite.status !== "pending" || new Date(invite.expires_at) < new Date()) {
+  if ((invite as any).status !== "pending" || new Date((invite as any).expires_at) < new Date()) {
     return NextResponse.json(
       { error: "Este convite expirou ou já foi aceito" },
       { status: 400 }
@@ -37,16 +37,17 @@ export async function GET(
   }
 
   // Return invite data
+  const inviteData = invite as any;
   return NextResponse.json({
-    id: invite.id,
-    email: invite.email,
-    role: invite.role,
-    organization_id: invite.organization_id,
-    workspace_id: invite.workspace_id,
-    organization_name: (invite.organizations as any)?.name,
-    workspace_name: invite.workspaces ? (invite.workspaces as any).name : null,
-    metadata: invite.metadata,
-    expires_at: invite.expires_at,
+    id: inviteData.id,
+    email: inviteData.email,
+    role: inviteData.role,
+    organization_id: inviteData.organization_id,
+    workspace_id: inviteData.workspace_id,
+    organization_name: inviteData.organizations?.name,
+    workspace_name: inviteData.workspaces?.name || null,
+    metadata: inviteData.metadata,
+    expires_at: inviteData.expires_at,
   });
 }
 

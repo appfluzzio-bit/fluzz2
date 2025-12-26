@@ -31,6 +31,7 @@ export default function InvitePage({
       setId(inviteId);
       loadInvite(inviteId);
     });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function loadInvite(inviteId: string) {

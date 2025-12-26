@@ -7,14 +7,14 @@ export async function isOrgAdmin(
 ): Promise<boolean> {
   const supabase = await createClient();
 
-  const { data } = await supabase
-    .from("organization_members")
+  const { data } = await (supabase
+    .from("organization_members") as any)
     .select("role")
     .eq("user_id", userId)
     .eq("organization_id", organizationId)
     .single();
 
-  return data?.role === "owner" || data?.role === "admin";
+  return (data as any)?.role === "owner" || (data as any)?.role === "admin";
 }
 
 export async function isOrgOwner(
@@ -23,14 +23,14 @@ export async function isOrgOwner(
 ): Promise<boolean> {
   const supabase = await createClient();
 
-  const { data } = await supabase
-    .from("organization_members")
+  const { data } = await (supabase
+    .from("organization_members") as any)
     .select("role")
     .eq("user_id", userId)
     .eq("organization_id", organizationId)
     .single();
 
-  return data?.role === "owner";
+  return (data as any)?.role === "owner";
 }
 
 export async function canManageWorkspaces(
@@ -47,8 +47,8 @@ export async function canManageWorkspaceMembers(
   const supabase = await createClient();
 
   // Check if user is workspace admin or manager
-  const { data: workspaceMember } = await supabase
-    .from("workspace_members")
+  const { data: workspaceMember } = await (supabase
+    .from("workspace_members") as any)
     .select("role, workspaces!inner(organization_id)")
     .eq("user_id", userId)
     .eq("workspace_id", workspaceId)
@@ -58,8 +58,8 @@ export async function canManageWorkspaceMembers(
 
   // Workspace admins can manage members
   if (
-    workspaceMember.role === "admin" ||
-    workspaceMember.role === "manager"
+    (workspaceMember as any).role === "admin" ||
+    (workspaceMember as any).role === "manager"
   ) {
     return true;
   }
@@ -77,8 +77,8 @@ export async function canManageDepartments(
 ): Promise<boolean> {
   const supabase = await createClient();
 
-  const { data: workspaceMember } = await supabase
-    .from("workspace_members")
+  const { data: workspaceMember } = await (supabase
+    .from("workspace_members") as any)
     .select("role, workspaces!inner(organization_id)")
     .eq("user_id", userId)
     .eq("workspace_id", workspaceId)
@@ -87,8 +87,8 @@ export async function canManageDepartments(
   if (!workspaceMember) return false;
 
   if (
-    workspaceMember.role === "admin" ||
-    workspaceMember.role === "manager"
+    (workspaceMember as any).role === "admin" ||
+    (workspaceMember as any).role === "manager"
   ) {
     return true;
   }
@@ -105,14 +105,14 @@ export async function getOrgRole(
 ): Promise<OrganizationRole | null> {
   const supabase = await createClient();
 
-  const { data } = await supabase
-    .from("organization_members")
+  const { data } = await (supabase
+    .from("organization_members") as any)
     .select("role")
     .eq("user_id", userId)
     .eq("organization_id", organizationId)
     .single();
 
-  return data?.role as OrganizationRole | null;
+  return (data as any)?.role as OrganizationRole | null;
 }
 
 export async function getWorkspaceRole(
@@ -121,14 +121,14 @@ export async function getWorkspaceRole(
 ): Promise<WorkspaceRole | null> {
   const supabase = await createClient();
 
-  const { data } = await supabase
-    .from("workspace_members")
+  const { data } = await (supabase
+    .from("workspace_members") as any)
     .select("role")
     .eq("user_id", userId)
     .eq("workspace_id", workspaceId)
     .single();
 
-  return data?.role as WorkspaceRole | null;
+  return (data as any)?.role as WorkspaceRole | null;
 }
 
 export async function getUserWorkspaces(userId: string, organizationId: string) {
@@ -138,8 +138,8 @@ export async function getUserWorkspaces(userId: string, organizationId: string) 
   const isAdmin = await isOrgAdmin(userId, organizationId);
 
   if (isAdmin) {
-    const { data } = await supabase
-      .from("workspaces")
+    const { data } = await (supabase
+      .from("workspaces") as any)
       .select("*")
       .eq("organization_id", organizationId)
       .is("deleted_at", null)
@@ -149,8 +149,8 @@ export async function getUserWorkspaces(userId: string, organizationId: string) 
   }
 
   // Otherwise, only see workspaces where user is a member
-  const { data } = await supabase
-    .from("workspace_members")
+  const { data } = await (supabase
+    .from("workspace_members") as any)
     .select("workspaces!inner(*)")
     .eq("user_id", userId)
     .eq("workspaces.organization_id", organizationId);

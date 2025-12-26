@@ -37,8 +37,8 @@ export async function createWorkspace(formData: FormData) {
 
   const supabase = await createClient();
 
-  const { data: workspace, error } = await supabase
-    .from("workspaces")
+  const { data: workspace, error } = await (supabase
+    .from("workspaces") as any)
     .insert({
       organization_id: organizationId,
       name: validated.data.name,
@@ -52,7 +52,7 @@ export async function createWorkspace(formData: FormData) {
   }
 
   // Add creator as admin
-  const { error: memberError } = await supabase.from("workspace_members").insert({
+  const { error: memberError } = await (supabase.from("workspace_members") as any).insert({
     workspace_id: workspace.id,
     user_id: user.id,
     role: "admin",
@@ -93,8 +93,8 @@ export async function updateWorkspace(formData: FormData) {
 
   const supabase = await createClient();
 
-  const { error } = await supabase
-    .from("workspaces")
+  const { error } = await (supabase
+    .from("workspaces") as any)
     .update({
       name: validated.data.name,
     })
@@ -122,8 +122,8 @@ export async function deleteWorkspace(workspaceId: string, organizationId: strin
   const supabase = await createClient();
 
   // Soft delete: apenas preenche deleted_at
-  const { error } = await supabase
-    .from("workspaces")
+  const { error } = await (supabase
+    .from("workspaces") as any)
     .update({ deleted_at: new Date().toISOString() })
     .eq("id", workspaceId);
 

@@ -20,11 +20,11 @@ export default async function DashboardLayout({
   const supabase = await createClient();
 
   // Verificar se o usuário pertence a uma organização
-  const { data: orgMember, error } = await supabase
+  const { data: orgMember, error } = (await supabase
     .from("organization_members")
     .select("organization_id")
     .eq("user_id", user.id)
-    .maybeSingle(); // Use maybeSingle() em vez de single() para evitar erro quando não há resultado
+    .maybeSingle()) as { data: { organization_id: string } | null; error: any }; // Use maybeSingle() em vez de single() para evitar erro quando não há resultado
 
   // Log para debug
   console.log("🔍 Verificando organização no dashboard:", {
@@ -39,8 +39,8 @@ export default async function DashboardLayout({
   }
 
   // Carregar workspaces reais do banco de dados
-  const { data: workspaces } = await supabase
-    .from("workspaces")
+  const { data: workspaces } = await (supabase
+    .from("workspaces") as any)
     .select("*")
     .eq("organization_id", orgMember.organization_id)
     .is("deleted_at", null)

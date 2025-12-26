@@ -87,6 +87,7 @@ export default function TeamPage() {
 
   useEffect(() => {
     loadData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentWorkspace]);
 
   async function loadData() {
@@ -112,7 +113,7 @@ export default function TeamPage() {
         .eq("user_id", user.id)
         .single();
 
-      const org = (orgMember?.organizations as any) as Organization;
+      const org = ((orgMember as any)?.organizations) as Organization;
       setOrganization(org);
       setCurrentUserIsOrgMember(!!orgMember);
 
@@ -120,7 +121,7 @@ export default function TeamPage() {
       const usersMap = new Map<string, UserWithMemberships>();
 
       // If user is org admin, get all org members
-      if (orgMember && (orgMember.role === "owner" || orgMember.role === "admin")) {
+      if (orgMember && ((orgMember as any).role === "owner" || (orgMember as any).role === "admin")) {
         const { data: orgMembers } = await supabase
           .from("organization_members")
           .select(`
@@ -168,12 +169,12 @@ export default function TeamPage() {
           } else {
             // User is not in org, but is in workspace
             // We need to fetch user data
-            supabase
-              .from("users")
+            (supabase
+              .from("users") as any)
               .select("*")
               .eq("id", userId)
               .single()
-              .then(({ data: userInfo }) => {
+              .then(({ data: userInfo }: any) => {
                 if (userInfo) {
                   usersMap.set(userId, {
                     ...userInfo,
@@ -187,16 +188,16 @@ export default function TeamPage() {
         });
       } else {
         // User is not org admin, only see members from their workspaces
-        const { data: userWorkspaces } = await supabase
-          .from("workspace_members")
+        const { data: userWorkspaces } = await (supabase
+          .from("workspace_members") as any)
           .select("workspace_id")
           .eq("user_id", user.id);
 
-        const workspaceIds = userWorkspaces?.map((w) => w.workspace_id) || [];
+        const workspaceIds = userWorkspaces?.map((w: any) => w.workspace_id) || [];
 
         for (const workspaceId of workspaceIds) {
-          const { data: workspaceMembers } = await supabase
-            .from("workspace_members")
+          const { data: workspaceMembers } = await (supabase
+            .from("workspace_members") as any)
             .select(`
               user_id,
               role,

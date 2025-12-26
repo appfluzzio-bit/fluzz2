@@ -12,16 +12,17 @@ export type Plan = Database["public"]["Tables"]["plans"]["Row"];
 export type OrganizationSubscription = Database["public"]["Tables"]["organization_subscriptions"]["Row"];
 export type CreditWallet = Database["public"]["Tables"]["credit_wallets"]["Row"];
 export type CreditLedger = Database["public"]["Tables"]["credit_ledger"]["Row"];
-export type WhatsAppAccount = Database["public"]["Tables"]["whatsapp_accounts"]["Row"];
-export type WhatsAppNumber = Database["public"]["Tables"]["whatsapp_numbers"]["Row"];
-export type WhatsAppTemplate = Database["public"]["Tables"]["whatsapp_templates"]["Row"];
-export type Contact = Database["public"]["Tables"]["contacts"]["Row"];
-export type Campaign = Database["public"]["Tables"]["campaigns"]["Row"];
-export type CampaignMessage = Database["public"]["Tables"]["campaign_messages"]["Row"];
-export type StripeCustomer = Database["public"]["Tables"]["stripe_customers"]["Row"];
-export type StripeSubscription = Database["public"]["Tables"]["stripe_subscriptions"]["Row"];
-export type StripeInvoice = Database["public"]["Tables"]["stripe_invoices"]["Row"];
-export type StripeEvent = Database["public"]["Tables"]["stripe_events"]["Row"];
+// TODO: Add these table definitions to database.ts when needed
+// export type WhatsAppAccount = Database["public"]["Tables"]["whatsapp_accounts"]["Row"];
+// export type WhatsAppNumber = Database["public"]["Tables"]["whatsapp_numbers"]["Row"];
+// export type WhatsAppTemplate = Database["public"]["Tables"]["whatsapp_templates"]["Row"];
+// export type Contact = Database["public"]["Tables"]["contacts"]["Row"];
+// export type Campaign = Database["public"]["Tables"]["campaigns"]["Row"];
+// export type CampaignMessage = Database["public"]["Tables"]["campaign_messages"]["Row"];
+// export type StripeCustomer = Database["public"]["Tables"]["stripe_customers"]["Row"];
+// export type StripeSubscription = Database["public"]["Tables"]["stripe_subscriptions"]["Row"];
+// export type StripeInvoice = Database["public"]["Tables"]["stripe_invoices"]["Row"];
+// export type StripeEvent = Database["public"]["Tables"]["stripe_events"]["Row"];
 
 export type OrganizationRole = "owner" | "admin";
 export type WorkspaceRole = "admin" | "manager" | "agent" | "viewer";

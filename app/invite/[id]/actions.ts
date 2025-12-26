@@ -14,8 +14,8 @@ export async function acceptInvite(formData: FormData) {
   const supabase = await createClient();
 
   // Get the invite
-  const { data: invite, error: inviteError } = await supabase
-    .from("invites")
+  const { data: invite, error: inviteError } = await (supabase
+    .from("invites") as any)
     .select("*")
     .eq("id", inviteId)
     .eq("status", "pending")
@@ -26,15 +26,15 @@ export async function acceptInvite(formData: FormData) {
   }
 
   // Check if expired
-  if (new Date(invite.expires_at) < new Date()) {
+  if (new Date((invite as any).expires_at) < new Date()) {
     return { error: "Este convite expirou" };
   }
 
   // Check if user already exists
-  const { data: existingUser } = await supabase
-    .from("users")
+  const { data: existingUser } = await (supabase
+    .from("users") as any)
     .select("id")
-    .eq("email", invite.email)
+    .eq("email", (invite as any).email)
     .is("deleted_at", null)
     .single();
 
@@ -43,14 +43,15 @@ export async function acceptInvite(formData: FormData) {
   }
 
   // Get metadata from invite
-  const metadata = (invite.metadata as any) || {};
-  const nome = metadata.nome || invite.email.split("@")[0];
+  const inviteData = invite as any;
+  const metadata = inviteData.metadata || {};
+  const nome = metadata.nome || inviteData.email.split("@")[0];
   const telefone = metadata.telefone || null;
   const isOrganizationUser = metadata.is_organization_user || false;
 
   // Create auth user
   const { data: authData, error: authError } = await supabase.auth.signUp({
-    email: invite.email,
+    email: inviteData.email,
     password: password,
     options: {
       data: {
@@ -69,10 +70,10 @@ export async function acceptInvite(formData: FormData) {
   const userId = authData.user.id;
 
   // Create user in users table
-  const { error: userError } = await supabase.from("users").insert({
+  const { error: userError } = await (supabase.from("users") as any).insert({
     id: userId,
     nome,
-    email: invite.email,
+    email: inviteData.email,
     telefone: telefone,
   });
 
@@ -83,14 +84,14 @@ export async function acceptInvite(formData: FormData) {
   }
 
   // Add user to organization or workspace based on invite
-  if (isOrganizationUser || !invite.workspace_id) {
+  if (isOrganizationUser || !inviteData.workspace_id) {
     // Organization member
-    const { error: orgMemberError } = await supabase
-      .from("organization_members")
+    const { error: orgMemberError } = await (supabase
+      .from("organization_members") as any)
       .insert({
-        organization_id: invite.organization_id,
+        organization_id: inviteData.organization_id,
         user_id: userId,
-        role: invite.role,
+        role: inviteData.role,
       });
 
     if (orgMemberError) {
@@ -99,29 +100,29 @@ export async function acceptInvite(formData: FormData) {
     }
 
     // Add to all organization workspaces
-    const { data: workspaces } = await supabase
-      .from("workspaces")
+    const { data: workspaces } = await (supabase
+      .from("workspaces") as any)
       .select("id")
-      .eq("organization_id", invite.organization_id)
+      .eq("organization_id", inviteData.organization_id)
       .is("deleted_at", null);
 
     if (workspaces && workspaces.length > 0) {
-      const workspaceMembers = workspaces.map((ws) => ({
+      const workspaceMembers = workspaces.map((ws: any) => ({
         workspace_id: ws.id,
         user_id: userId,
         role: "admin" as const,
       }));
 
-      await supabase.from("workspace_members").insert(workspaceMembers);
+      await (supabase.from("workspace_members") as any).insert(workspaceMembers);
     }
   } else {
     // Workspace member only
-    const { error: wsMemberError } = await supabase
-      .from("workspace_members")
+    const { error: wsMemberError } = await (supabase
+      .from("workspace_members") as any)
       .insert({
-        workspace_id: invite.workspace_id,
+        workspace_id: inviteData.workspace_id,
         user_id: userId,
-        role: invite.role,
+        role: inviteData.role,
       });
 
     if (wsMemberError) {
@@ -131,8 +132,8 @@ export async function acceptInvite(formData: FormData) {
   }
 
   // Mark invite as accepted
-  await supabase
-    .from("invites")
+  await (supabase
+    .from("invites") as any)
     .update({ status: "accepted" })
     .eq("id", inviteId);
 
@@ -140,7 +141,7 @@ export async function acceptInvite(formData: FormData) {
   
   // Sign in the user automatically
   await supabase.auth.signInWithPassword({
-    email: invite.email,
+    email: inviteData.email,
     password: password,
   });
 
