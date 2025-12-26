@@ -33,11 +33,12 @@ export default async function DashboardPage() {
 
   const organization = orgMember?.organizations as any;
 
-  // Get workspaces count
+  // Get workspaces count (apenas não deletados)
   const { count: workspacesCount } = await supabase
     .from("workspaces")
     .select("*", { count: "exact", head: true })
-    .eq("organization_id", organization?.id);
+    .eq("organization_id", organization?.id)
+    .is("deleted_at", null);
 
   // Get credit wallet
   const { data: wallet } = await supabase

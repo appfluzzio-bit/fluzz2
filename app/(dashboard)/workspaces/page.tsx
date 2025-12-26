@@ -34,6 +34,7 @@ import { Label } from "@/components/ui/label";
 import { Building2, Edit, Plus, Trash } from "lucide-react";
 import { createWorkspace, updateWorkspace, deleteWorkspace } from "./actions";
 import { useToast } from "@/components/ui/use-toast";
+import { useWorkspace } from "@/lib/workspace-context";
 import type { Workspace, Organization } from "@/types";
 
 export default function WorkspacesPage() {
@@ -48,6 +49,7 @@ export default function WorkspacesPage() {
   const [editingWorkspace, setEditingWorkspace] = useState<Workspace | null>(null);
   const [deletingWorkspace, setDeletingWorkspace] = useState<Workspace | null>(null);
   const { toast } = useToast();
+  const { refreshWorkspaces } = useWorkspace();
   const supabase = createClient();
 
   useEffect(() => {
@@ -70,11 +72,12 @@ export default function WorkspacesPage() {
       const org = (orgMember?.organizations as any) as Organization;
       setOrganization(org);
 
-      // Get workspaces
+      // Get workspaces (apenas não deletados)
       const { data: workspacesData } = await supabase
         .from("workspaces")
         .select("*")
         .eq("organization_id", org.id)
+        .is("deleted_at", null)
         .order("name");
 
       setWorkspaces(workspacesData || []);
@@ -106,9 +109,12 @@ export default function WorkspacesPage() {
       toast({
         title: "Sucesso",
         description: "Workspace criado com sucesso",
+        variant: "success",
       });
       setIsCreateOpen(false);
       loadData();
+      // Atualizar sidebar
+      await refreshWorkspaces();
     }
   }
 
@@ -130,9 +136,12 @@ export default function WorkspacesPage() {
       toast({
         title: "Sucesso",
         description: "Workspace atualizado com sucesso",
+        variant: "success",
       });
       setEditingWorkspace(null);
       loadData();
+      // Atualizar sidebar
+      await refreshWorkspaces();
     }
   }
 
@@ -151,9 +160,12 @@ export default function WorkspacesPage() {
       toast({
         title: "Sucesso",
         description: "Workspace excluído com sucesso",
+        variant: "success",
       });
       setDeletingWorkspace(null);
       loadData();
+      // Atualizar sidebar
+      await refreshWorkspaces();
     }
   }
 
@@ -189,19 +201,12 @@ export default function WorkspacesPage() {
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
                   <Label htmlFor="name">Nome</Label>
-                  <Input id="name" name="name" required />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="slug">Slug</Label>
-                  <Input
-                    id="slug"
-                    name="slug"
-                    pattern="[a-z0-9-]+"
-                    required
+                  <Input 
+                    id="name" 
+                    name="name" 
+                    placeholder="Ex: Vendas, Suporte, Marketing" 
+                    required 
                   />
-                  <p className="text-xs text-muted-foreground">
-                    Apenas letras minúsculas, números e hífens
-                  </p>
                 </div>
               </div>
               <DialogFooter>
@@ -238,7 +243,6 @@ export default function WorkspacesPage() {
                   </Button>
                 </div>
               </div>
-              <CardDescription>/{workspace.slug}</CardDescription>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground">
@@ -267,16 +271,7 @@ export default function WorkspacesPage() {
                   id="edit-name"
                   name="name"
                   defaultValue={editingWorkspace?.name}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-slug">Slug</Label>
-                <Input
-                  id="edit-slug"
-                  name="slug"
-                  defaultValue={editingWorkspace?.slug}
-                  pattern="[a-z0-9-]+"
+                  placeholder="Ex: Vendas, Suporte, Marketing"
                   required
                 />
               </div>

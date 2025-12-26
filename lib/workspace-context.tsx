@@ -2,12 +2,14 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { Workspace } from "@/types";
+import { createClient } from "@/lib/supabase/client";
 
 interface WorkspaceContextType {
   currentWorkspace: Workspace | null;
   setCurrentWorkspace: (workspace: Workspace | null) => void;
   workspaces: Workspace[];
   setWorkspaces: (workspaces: Workspace[]) => void;
+  refreshWorkspaces: () => Promise<void>;
 }
 
 const WorkspaceContext = createContext<WorkspaceContextType | undefined>(
@@ -40,6 +42,45 @@ export function WorkspaceProvider({
     }
   };
 
+  // Função para recarregar workspaces do banco
+  const refreshWorkspaces = async () => {
+    const supabase = createClient();
+    
+    try {
+      // Pegar usuário atual
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Pegar organização do usuário
+      const { data: orgMember } = await supabase
+        .from("organization_members")
+        .select("organization_id")
+        .eq("user_id", user.id)
+        .single();
+
+      if (!orgMember) return;
+
+      // Buscar workspaces
+      const { data: workspacesData } = await supabase
+        .from("workspaces")
+        .select("*")
+        .eq("organization_id", orgMember.organization_id)
+        .is("deleted_at", null)
+        .order("name");
+
+      if (workspacesData) {
+        setWorkspaces(workspacesData);
+        
+        // Se o workspace atual foi deletado, selecionar o primeiro disponível
+        if (currentWorkspace && !workspacesData.find(w => w.id === currentWorkspace.id)) {
+          setCurrentWorkspaceState(workspacesData[0] || null);
+        }
+      }
+    } catch (error) {
+      console.error("Erro ao recarregar workspaces:", error);
+    }
+  };
+
   // Load persisted workspace on mount
   useEffect(() => {
     if (!currentWorkspace && workspaces.length > 0) {
@@ -64,6 +105,7 @@ export function WorkspaceProvider({
         setCurrentWorkspace,
         workspaces,
         setWorkspaces,
+        refreshWorkspaces,
       }}
     >
       {children}

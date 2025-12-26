@@ -106,6 +106,7 @@ export default function DepartmentsPage() {
       toast({
         title: "Sucesso",
         description: "Departamento criado com sucesso",
+        variant: "success",
       });
       setIsCreateOpen(false);
       loadDepartments();
@@ -132,6 +133,7 @@ export default function DepartmentsPage() {
       toast({
         title: "Sucesso",
         description: "Departamento atualizado com sucesso",
+        variant: "success",
       });
       setEditingDepartment(null);
       loadDepartments();
@@ -156,6 +158,7 @@ export default function DepartmentsPage() {
       toast({
         title: "Sucesso",
         description: "Departamento excluído com sucesso",
+        variant: "success",
       });
       setDeletingDepartment(null);
       loadDepartments();

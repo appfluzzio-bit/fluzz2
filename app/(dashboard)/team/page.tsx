@@ -147,6 +147,7 @@ export default function TeamPage() {
       toast({
         title: "Sucesso",
         description: "Convite enviado com sucesso",
+        variant: "success",
       });
       setIsInviteOrgOpen(false);
       loadData();
@@ -173,6 +174,7 @@ export default function TeamPage() {
       toast({
         title: "Sucesso",
         description: "Convite enviado com sucesso",
+        variant: "success",
       });
       setIsInviteWorkspaceOpen(false);
       loadData();
@@ -198,6 +200,7 @@ export default function TeamPage() {
       toast({
         title: "Sucesso",
         description: "Membro removido com sucesso",
+        variant: "success",
       });
       setRemovingMember(null);
       loadData();
@@ -219,6 +222,7 @@ export default function TeamPage() {
       toast({
         title: "Sucesso",
         description: "Convite cancelado",
+        variant: "success",
       });
       loadData();
     }

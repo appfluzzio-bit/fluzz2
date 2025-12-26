@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
 import { useTheme } from "next-themes";
 import {
@@ -14,6 +14,7 @@ import {
   CreditCard,
   FileText,
   Layers,
+  Plus,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
@@ -23,6 +24,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
@@ -98,6 +100,7 @@ const settings = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   const { theme } = useTheme();
   const { workspaces, currentWorkspace, setCurrentWorkspace } = useWorkspace();
   const { isExpanded } = useSidebar();
@@ -163,8 +166,8 @@ export function Sidebar() {
         </div>
       )}
 
-      {/* Workspace Switcher - só aparece se tiver mais de 1 workspace e sidebar expandida */}
-      {workspaces.length > 1 && isExpanded && (
+      {/* Workspace Switcher - aparece quando sidebar está expandida e há MAIS DE 1 workspace */}
+      {isExpanded && workspaces.length > 1 && (
         <div className="px-4 pb-4">
           <DropdownMenu>
             <DropdownMenuTrigger className="w-full">
@@ -194,6 +197,14 @@ export function Sidebar() {
                   {workspace.name}
                 </DropdownMenuItem>
               ))}
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => router.push("/workspaces")}
+                className="cursor-pointer text-primary"
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                Criar Novo Workspace
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

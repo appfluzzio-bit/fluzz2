@@ -38,24 +38,18 @@ export default async function DashboardLayout({
     redirect("/onboarding");
   }
 
-  // Por enquanto, usar workspaces mockados
-  // Será substituído por dados reais quando criarmos a tabela workspaces
-  const mockWorkspaces = [
-    {
-      id: "1",
-      name: "Workspace Principal",
-      slug: "principal",
-      organization_id: orgMember.organization_id,
-      created_at: new Date().toISOString(),
-    },
-  ];
-
-  const workspaces = mockWorkspaces;
+  // Carregar workspaces reais do banco de dados
+  const { data: workspaces } = await supabase
+    .from("workspaces")
+    .select("*")
+    .eq("organization_id", orgMember.organization_id)
+    .is("deleted_at", null)
+    .order("name");
 
   return (
     <WorkspaceProvider
-      initialWorkspaces={workspaces}
-      initialWorkspace={workspaces[0] || null}
+      initialWorkspaces={workspaces || []}
+      initialWorkspace={workspaces?.[0] || null}
     >
       <SidebarProvider>
         <div className="flex h-screen">

@@ -113,11 +113,12 @@ export async function inviteToWorkspace(formData: FormData) {
 
   const supabase = await createClient();
 
-  // Get organization_id from workspace
+  // Get organization_id from workspace (apenas não deletados)
   const { data: workspace } = await supabase
     .from("workspaces")
     .select("organization_id")
     .eq("id", workspaceId)
+    .is("deleted_at", null)
     .single();
 
   if (!workspace) {
