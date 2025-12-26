@@ -38,7 +38,8 @@ export function WorkspaceProvider({
     if (workspace) {
       localStorage.setItem("currentWorkspaceId", workspace.id);
     } else {
-      localStorage.removeItem("currentWorkspaceId");
+      // null significa "Todos" - salvar como string especial
+      localStorage.setItem("currentWorkspaceId", "all");
     }
   };
 
@@ -66,7 +67,7 @@ export function WorkspaceProvider({
         .select("*")
         .eq("organization_id", orgMember.organization_id)
         .is("deleted_at", null)
-        .order("name");
+        .order("created_at", { ascending: true });
 
       if (workspacesData) {
         setWorkspaces(workspacesData);
@@ -83,17 +84,22 @@ export function WorkspaceProvider({
 
   // Load persisted workspace on mount
   useEffect(() => {
-    if (!currentWorkspace && workspaces.length > 0) {
+    if (currentWorkspace === undefined && workspaces.length > 0) {
       const savedWorkspaceId = localStorage.getItem("currentWorkspaceId");
-      if (savedWorkspaceId) {
+      if (savedWorkspaceId === "all") {
+        // Usuário tinha "Todos" selecionado
+        setCurrentWorkspaceState(null);
+      } else if (savedWorkspaceId) {
         const savedWorkspace = workspaces.find((w) => w.id === savedWorkspaceId);
         if (savedWorkspace) {
           setCurrentWorkspaceState(savedWorkspace);
         } else {
-          setCurrentWorkspaceState(workspaces[0]);
+          // Workspace salvo não existe mais, selecionar "Todos"
+          setCurrentWorkspaceState(null);
         }
       } else {
-        setCurrentWorkspaceState(workspaces[0]);
+        // Primeira vez, selecionar "Todos"
+        setCurrentWorkspaceState(null);
       }
     }
   }, [workspaces, currentWorkspace]);

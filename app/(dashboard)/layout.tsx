@@ -44,7 +44,7 @@ export default async function DashboardLayout({
     .select("*")
     .eq("organization_id", orgMember.organization_id)
     .is("deleted_at", null)
-    .order("name");
+    .order("created_at", { ascending: true });
 
   return (
     <WorkspaceProvider

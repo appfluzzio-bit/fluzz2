@@ -170,20 +170,33 @@ export function Sidebar() {
       {isExpanded && workspaces.length > 1 && (
         <div className="px-4 pb-4">
           <DropdownMenu>
-            <DropdownMenuTrigger className="w-full">
+            <DropdownMenuTrigger className="w-full focus:outline-none focus-visible:outline-none focus-visible:ring-0">
               <div className="flex items-center justify-between rounded-xl bg-primary/10 dark:bg-primary/5 px-4 py-3 hover:bg-primary/15 dark:hover:bg-primary/10 transition-all duration-200 border border-primary/20">
                 <div className="flex items-center gap-3 min-w-0">
                   <div className="p-1.5 rounded-lg bg-primary/20">
                     <Building2 className="h-4 w-4 flex-shrink-0 text-primary" />
                   </div>
                   <span className="text-sm font-semibold truncate text-foreground">
-                    {currentWorkspace?.name || "Workspace"}
+                    {currentWorkspace?.name || "Todos"}
                   </span>
                 </div>
                 <ChevronDown className="h-4 w-4 flex-shrink-0 text-primary" />
               </div>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56">
+              {/* Opção "Todos" */}
+              <DropdownMenuItem
+                onClick={() => setCurrentWorkspace(null)}
+                className={cn(
+                  "cursor-pointer",
+                  currentWorkspace === null && "bg-primary/10 text-primary"
+                )}
+              >
+                <Building2 className="mr-2 h-4 w-4" />
+                Todos
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              {/* Lista de workspaces */}
               {workspaces.map((workspace) => (
                 <DropdownMenuItem
                   key={workspace.id}

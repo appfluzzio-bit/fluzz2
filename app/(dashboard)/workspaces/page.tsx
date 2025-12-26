@@ -78,7 +78,7 @@ export default function WorkspacesPage() {
         .select("*")
         .eq("organization_id", org.id)
         .is("deleted_at", null)
-        .order("name");
+        .order("created_at", { ascending: true });
 
       setWorkspaces(workspacesData || []);
     } catch (error) {

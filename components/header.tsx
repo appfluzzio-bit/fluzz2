@@ -15,7 +15,6 @@ import { WorkspaceSwitcher } from "@/components/workspace-switcher";
 import { LogOut, Settings, Menu } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { useEffect, useState } from "react";
 import { useWorkspace } from "@/lib/workspace-context";
 import { useSidebar } from "@/lib/sidebar-context";
 import { Button } from "@/components/ui/button";
@@ -29,42 +28,6 @@ export function Header({ user }: HeaderProps) {
   const supabase = createClient();
   const { currentWorkspace } = useWorkspace();
   const { toggleSidebar } = useSidebar();
-  const [credits, setCredits] = useState<number>(0);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function fetchCredits() {
-      if (!currentWorkspace?.organization_id) {
-        setLoading(false);
-        return;
-      }
-
-      try {
-        // Busca o saldo de créditos da organização
-        const { data, error } = await supabase
-          .from("credit_ledger")
-          .select("amount")
-          .eq("organization_id", currentWorkspace.organization_id)
-          .order("created_at", { ascending: false });
-
-        if (error) {
-          console.error("Error fetching credits:", error);
-          setLoading(false);
-          return;
-        }
-
-        // Calcula o total de créditos (soma de todos os lançamentos)
-        const total = data?.reduce((acc, item) => acc + item.amount, 0) || 0;
-        setCredits(total);
-      } catch (error) {
-        console.error("Error:", error);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchCredits();
-  }, [currentWorkspace, supabase]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -96,20 +59,6 @@ export function Header({ user }: HeaderProps) {
       </div>
 
       <div className="flex items-center gap-6">
-        {/* Créditos */}
-        <div className="flex items-center gap-2 text-sm">
-          {loading ? (
-            <div className="h-4 w-20 animate-pulse rounded bg-muted" />
-          ) : (
-            <>
-              <span className="text-muted-foreground">Créditos:</span>
-              <span className="font-semibold text-primary">
-                {credits.toLocaleString("pt-BR")}
-              </span>
-            </>
-          )}
-        </div>
-
         {/* Toggle de tema */}
         <ThemeToggle />
 
