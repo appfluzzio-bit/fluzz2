@@ -31,7 +31,7 @@ export default function LoginPage() {
             Acesse sua plataforma de comunicação
           </p>
 
-          <form action={login} className="space-y-4">
+          <form action={login as any} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">E-mail</Label>
               <Input

@@ -37,7 +37,7 @@ export async function createOrganization(formData: FormData) {
   }
 
   // Criar a organização usando a função RPC (bypassa RLS de forma segura)
-  const { data: organization, error: orgError } = await supabase.rpc(
+  const { data: organization, error: orgError } = await (supabase.rpc as any)(
     "create_organization_with_owner",
     {
       org_name: validated.data.name,

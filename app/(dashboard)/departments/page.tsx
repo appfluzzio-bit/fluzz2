@@ -63,6 +63,7 @@ export default function DepartmentsPage() {
     if (currentWorkspace) {
       loadDepartments();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentWorkspace]);
 
   async function loadDepartments() {
@@ -308,8 +309,8 @@ export default function DepartmentsPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir Departamento</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja excluir o departamento "
-              {deletingDepartment?.name}"? Esta ação não pode ser desfeita.
+              Tem certeza que deseja excluir o departamento &quot;
+              {deletingDepartment?.name}&quot;? Esta ação não pode ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

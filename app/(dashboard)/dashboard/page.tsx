@@ -31,7 +31,7 @@ export default async function DashboardPage() {
     .eq("user_id", user.id)
     .single();
 
-  const organization = orgMember?.organizations as any;
+  const organization = (orgMember as any)?.organizations;
 
   // Get workspaces count (apenas não deletados)
   const { count: workspacesCount } = await supabase
@@ -45,7 +45,7 @@ export default async function DashboardPage() {
     .from("credit_wallets")
     .select("*")
     .eq("organization_id", organization?.id)
-    .single();
+    .single() as { data: any };
 
   // Get recent credit transactions
   const { data: recentTransactions } = await supabase
@@ -53,7 +53,7 @@ export default async function DashboardPage() {
     .select("*")
     .eq("organization_id", organization?.id || "")
     .order("created_at", { ascending: false })
-    .limit(5);
+    .limit(5) as { data: any };
 
   // Get subscription
   const { data: subscription } = await supabase
@@ -61,7 +61,7 @@ export default async function DashboardPage() {
     .select("*, plans(*)")
     .eq("organization_id", organization?.id)
     .eq("status", "active")
-    .single();
+    .single() as { data: any };
 
   // Mock data for campaigns (TODO: implement when campaigns are ready)
   const campaignsCount = 0;
@@ -72,7 +72,7 @@ export default async function DashboardPage() {
       <div>
         <h1 className="text-3xl font-bold">Dashboard</h1>
         <p className="text-muted-foreground">
-          Bem-vindo(a) de volta, {user.name}! Aqui está um resumo das suas
+          Bem-vindo(a) de volta, {user.nome}! Aqui está um resumo das suas
           atividades.
         </p>
       </div>
@@ -191,7 +191,7 @@ export default async function DashboardPage() {
           <CardContent>
             {recentTransactions && recentTransactions.length > 0 ? (
               <div className="space-y-2">
-                {recentTransactions.map((transaction) => (
+                {recentTransactions.map((transaction: any) => (
                   <div
                     key={transaction.id}
                     className="flex items-center justify-between border-b pb-2 last:border-0"

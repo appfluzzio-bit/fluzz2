@@ -81,6 +81,243 @@ export interface Database {
           created_at?: string;
         };
       };
+      workspaces: {
+        Row: {
+          id: string;
+          organization_id: string;
+          name: string;
+          created_at: string;
+          deleted_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          organization_id: string;
+          name: string;
+          created_at?: string;
+          deleted_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          organization_id?: string;
+          name?: string;
+          created_at?: string;
+          deleted_at?: string | null;
+        };
+      };
+      workspace_members: {
+        Row: {
+          id: string;
+          workspace_id: string;
+          user_id: string;
+          role: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          workspace_id: string;
+          user_id: string;
+          role?: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          workspace_id?: string;
+          user_id?: string;
+          role?: string;
+          created_at?: string;
+        };
+      };
+      departments: {
+        Row: {
+          id: string;
+          workspace_id: string;
+          name: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          workspace_id: string;
+          name: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          workspace_id?: string;
+          name?: string;
+          created_at?: string;
+        };
+      };
+      department_members: {
+        Row: {
+          id: string;
+          department_id: string;
+          user_id: string;
+          role: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          department_id: string;
+          user_id: string;
+          role: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          department_id?: string;
+          user_id?: string;
+          role?: string;
+          created_at?: string;
+        };
+      };
+      invites: {
+        Row: {
+          id: string;
+          organization_id: string;
+          email: string;
+          invited_by: string;
+          role: string;
+          workspace_id: string | null;
+          expires_at: string;
+          status: string;
+          metadata: Json | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          organization_id: string;
+          email: string;
+          invited_by: string;
+          role: string;
+          workspace_id?: string | null;
+          expires_at: string;
+          status?: string;
+          metadata?: Json | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          organization_id?: string;
+          email?: string;
+          invited_by?: string;
+          role?: string;
+          workspace_id?: string | null;
+          expires_at?: string;
+          status?: string;
+          metadata?: Json | null;
+          created_at?: string;
+        };
+      };
+      plans: {
+        Row: {
+          id: string;
+          name: string;
+          price_cents: number;
+          included_credits: number;
+          max_numbers: number | null;
+          max_users: number | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          price_cents: number;
+          included_credits: number;
+          max_numbers?: number | null;
+          max_users?: number | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          price_cents?: number;
+          included_credits?: number;
+          max_numbers?: number | null;
+          max_users?: number | null;
+          created_at?: string;
+        };
+      };
+      organization_subscriptions: {
+        Row: {
+          id: string;
+          organization_id: string;
+          plan_id: string;
+          status: string;
+          started_at: string;
+          current_period_end: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          organization_id: string;
+          plan_id: string;
+          status?: string;
+          started_at: string;
+          current_period_end: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          organization_id?: string;
+          plan_id?: string;
+          status?: string;
+          started_at?: string;
+          current_period_end?: string;
+          created_at?: string;
+        };
+      };
+      credit_wallets: {
+        Row: {
+          id: string;
+          organization_id: string;
+          balance: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          organization_id: string;
+          balance?: number;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          organization_id?: string;
+          balance?: number;
+          created_at?: string;
+        };
+      };
+      credit_ledger: {
+        Row: {
+          id: string;
+          organization_id: string;
+          type: string;
+          amount: number;
+          reference_type: string | null;
+          reference_id: string | null;
+          expires_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          organization_id: string;
+          type: string;
+          amount: number;
+          reference_type?: string | null;
+          reference_id?: string | null;
+          expires_at?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          organization_id?: string;
+          type?: string;
+          amount?: number;
+          reference_type?: string | null;
+          reference_id?: string | null;
+          expires_at?: string | null;
+          created_at?: string;
+        };
+      };
     };
     Views: {
       [_ in never]: never;

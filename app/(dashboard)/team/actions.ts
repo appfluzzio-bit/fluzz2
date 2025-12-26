@@ -4,6 +4,12 @@ import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { getUser } from "@/lib/auth";
 import { isOrgAdmin, canManageWorkspaceMembers } from "@/lib/permissions";
 import { revalidatePath } from "next/cache";
+import { z } from "zod";
+
+const inviteSchema = z.object({
+  email: z.string().email("E-mail inválido"),
+  role: z.string().min(1, "Role é obrigatório"),
+});
 
 // Nova função para criar usuário via convite
 export async function createUser(formData: FormData) {
@@ -95,8 +101,8 @@ export async function createUser(formData: FormData) {
   console.log("inviteData:", JSON.stringify(inviteData, null, 2));
 
   // Usar adminClient para bypass RLS policies
-  const { error: inviteError, data: invite } = await adminClient
-    .from("invites")
+  const { error: inviteError, data: invite } = await (adminClient
+    .from("invites") as any)
     .insert(inviteData)
     .select()
     .single();
@@ -137,33 +143,33 @@ export async function removeUser(userId: string, organizationId: string) {
   const supabase = await createClient();
 
   // Remover de organization_members
-  await supabase
-    .from("organization_members")
+  await (supabase
+    .from("organization_members") as any)
     .delete()
     .eq("user_id", userId)
     .eq("organization_id", organizationId);
 
   // Remover de workspace_members de todos os workspaces da organização
-  const { data: workspaces } = await supabase
-    .from("workspaces")
+  const { data: workspaces } = await (supabase
+    .from("workspaces") as any)
     .select("id")
     .eq("organization_id", organizationId);
 
   if (workspaces) {
-    const workspaceIds = workspaces.map((ws) => ws.id);
-    await supabase
-      .from("workspace_members")
+    const workspaceIds = workspaces.map((ws: any) => ws.id);
+    await (supabase
+      .from("workspace_members") as any)
       .delete()
       .eq("user_id", userId)
       .in("workspace_id", workspaceIds);
   }
 
   // Remover de department_members
-  await supabase.from("department_members").delete().eq("user_id", userId);
+  await (supabase.from("department_members") as any).delete().eq("user_id", userId);
 
   // Soft delete do usuário
-  const { error } = await supabase
-    .from("users")
+  const { error } = await (supabase
+    .from("users") as any)
     .update({ deleted_at: new Date().toISOString() })
     .eq("id", userId);
 
@@ -200,15 +206,15 @@ export async function inviteToOrganization(formData: FormData) {
   const supabase = await createClient();
 
   // Check if user already exists in organization
-  const { data: existingUser } = await supabase
-    .from("users")
+  const { data: existingUser } = await (supabase
+    .from("users") as any)
     .select("id")
     .eq("email", email)
     .single();
 
   if (existingUser) {
-    const { data: existingMember } = await supabase
-      .from("organization_members")
+    const { data: existingMember } = await (supabase
+      .from("organization_members") as any)
       .select("id")
       .eq("organization_id", organizationId)
       .eq("user_id", existingUser.id)
@@ -220,8 +226,8 @@ export async function inviteToOrganization(formData: FormData) {
   }
 
   // Check for pending invite
-  const { data: pendingInvite } = await supabase
-    .from("invites")
+  const { data: pendingInvite } = await (supabase
+    .from("invites") as any)
     .select("id")
     .eq("organization_id", organizationId)
     .eq("email", email)
@@ -236,7 +242,7 @@ export async function inviteToOrganization(formData: FormData) {
   const expiresAt = new Date();
   expiresAt.setDate(expiresAt.getDate() + 7);
 
-  const { error } = await supabase.from("invites").insert({
+  const { error } = await (supabase.from("invites") as any).insert({
     organization_id: organizationId,
     workspace_id: null,
     email: email,
@@ -282,8 +288,8 @@ export async function inviteToWorkspace(formData: FormData) {
   const supabase = await createClient();
 
   // Get organization_id from workspace (apenas não deletados)
-  const { data: workspace } = await supabase
-    .from("workspaces")
+  const { data: workspace } = await (supabase
+    .from("workspaces") as any)
     .select("organization_id")
     .eq("id", workspaceId)
     .is("deleted_at", null)
@@ -296,7 +302,7 @@ export async function inviteToWorkspace(formData: FormData) {
   const expiresAt = new Date();
   expiresAt.setDate(expiresAt.getDate() + 7);
 
-  const { error } = await supabase.from("invites").insert({
+  const { error } = await (supabase.from("invites") as any).insert({
     organization_id: workspace.organization_id,
     workspace_id: workspaceId,
     email: validated.data.email,
@@ -330,8 +336,8 @@ export async function removeOrganizationMember(
 
   const supabase = await createClient();
 
-  const { error } = await supabase
-    .from("organization_members")
+  const { error } = await (supabase
+    .from("organization_members") as any)
     .delete()
     .eq("id", memberId);
 
@@ -359,8 +365,8 @@ export async function removeWorkspaceMember(
 
   const supabase = await createClient();
 
-  const { error } = await supabase
-    .from("workspace_members")
+  const { error } = await (supabase
+    .from("workspace_members") as any)
     .delete()
     .eq("id", memberId);
 
@@ -386,8 +392,8 @@ export async function cancelInvite(inviteId: string, organizationId: string) {
   const supabase = await createClient();
 
   // Atualizar status para cancelled ao invés de deletar
-  const { error } = await supabase
-    .from("invites")
+  const { error } = await (supabase
+    .from("invites") as any)
     .update({ status: "cancelled" })
     .eq("id", inviteId);
 
@@ -414,8 +420,8 @@ export async function resendInvite(inviteId: string, organizationId: string) {
   const supabase = await createClient();
 
   // Buscar convite antigo
-  const { data: oldInvite, error: fetchError } = await supabase
-    .from("invites")
+  const { data: oldInvite, error: fetchError } = await (supabase
+    .from("invites") as any)
     .select("*")
     .eq("id", inviteId)
     .single();
@@ -425,8 +431,8 @@ export async function resendInvite(inviteId: string, organizationId: string) {
   }
 
   // Cancelar o convite antigo
-  await supabase
-    .from("invites")
+  await (supabase
+    .from("invites") as any)
     .update({ status: "expired" })
     .eq("id", inviteId);
 
@@ -445,8 +451,8 @@ export async function resendInvite(inviteId: string, organizationId: string) {
     metadata: oldInvite.metadata,
   };
 
-  const { error: createError, data: newInvite } = await supabase
-    .from("invites")
+  const { error: createError, data: newInvite } = await (supabase
+    .from("invites") as any)
     .insert(newInviteData)
     .select()
     .single();

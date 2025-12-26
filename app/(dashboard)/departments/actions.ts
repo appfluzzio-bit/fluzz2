@@ -34,8 +34,8 @@ export async function createDepartment(formData: FormData) {
 
   const supabase = await createClient();
 
-  const { data: department, error } = await supabase
-    .from("departments")
+  const { data: department, error } = await (supabase
+    .from("departments") as any)
     .insert({
       workspace_id: workspaceId,
       name: validated.data.name,
@@ -76,8 +76,8 @@ export async function updateDepartment(formData: FormData) {
 
   const supabase = await createClient();
 
-  const { error } = await supabase
-    .from("departments")
+  const { error } = await (supabase
+    .from("departments") as any)
     .update({
       name: validated.data.name,
     })
@@ -104,8 +104,8 @@ export async function deleteDepartment(departmentId: string, workspaceId: string
 
   const supabase = await createClient();
 
-  const { error } = await supabase
-    .from("departments")
+  const { error } = await (supabase
+    .from("departments") as any)
     .delete()
     .eq("id", departmentId);
 
@@ -135,7 +135,7 @@ export async function addDepartmentMember(
 
   const supabase = await createClient();
 
-  const { error } = await supabase.from("department_members").insert({
+  const { error } = await (supabase.from("department_members") as any).insert({
     department_id: departmentId,
     user_id: userId,
     role: role,
@@ -165,8 +165,8 @@ export async function removeDepartmentMember(
 
   const supabase = await createClient();
 
-  const { error } = await supabase
-    .from("department_members")
+  const { error } = await (supabase
+    .from("department_members") as any)
     .delete()
     .eq("id", departmentMemberId);
 

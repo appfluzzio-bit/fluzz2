@@ -26,7 +26,7 @@ export default async function SettingsPage() {
           <div>
             <div className="text-sm font-medium">Nome</div>
             <div className="text-sm text-muted-foreground">
-              {user?.name || "Não informado"}
+              {user?.nome || "Não informado"}
             </div>
           </div>
           <Separator />

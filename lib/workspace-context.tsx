@@ -53,8 +53,8 @@ export function WorkspaceProvider({
       if (!user) return;
 
       // Pegar organização do usuário
-      const { data: orgMember } = await supabase
-        .from("organization_members")
+      const { data: orgMember } = await (supabase
+        .from("organization_members") as any)
         .select("organization_id")
         .eq("user_id", user.id)
         .single();
@@ -62,10 +62,10 @@ export function WorkspaceProvider({
       if (!orgMember) return;
 
       // Buscar workspaces
-      const { data: workspacesData } = await supabase
-        .from("workspaces")
+      const { data: workspacesData } = await (supabase
+        .from("workspaces") as any)
         .select("*")
-        .eq("organization_id", orgMember.organization_id)
+        .eq("organization_id", (orgMember as any).organization_id)
         .is("deleted_at", null)
         .order("created_at", { ascending: true });
 
@@ -73,7 +73,7 @@ export function WorkspaceProvider({
         setWorkspaces(workspacesData);
         
         // Se o workspace atual foi deletado, selecionar o primeiro disponível
-        if (currentWorkspace && !workspacesData.find(w => w.id === currentWorkspace.id)) {
+        if (currentWorkspace && !workspacesData.find((w: any) => w.id === currentWorkspace.id)) {
           setCurrentWorkspaceState(workspacesData[0] || null);
         }
       }
