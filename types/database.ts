@@ -155,6 +155,7 @@ export type Invite = {
   workspace_id: string | null;
   expires_at: string;
   status: string;
+  metadata?: Json;
   created_at: string;
 };
 
